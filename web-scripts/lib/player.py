@@ -131,24 +131,3 @@ class player_info:
                     'Teams': [self.teams()],
                     'Player_ID': [self.player_id()]}
         return self.row
-
-def match_player(player_info_df, match_dictionary):
-    df_copy = player_info_df
-    for key, value in match_dictionary.items():
-        if key == 'href':
-            continue
-
-        if key == 'Season':
-            df_copy.loc[(df_copy['Draft_Year'] + df_copy['Career_Seasons'] >= value) & (df_copy['Draft_Year'] < value),]
-
-        if int(value) == value:
-            df_copy = df_copy.query(key + ' == ' + str(value))
-        else:
-            df_copy = df_copy.query(key + ' == "' + value + '"')
-
-        if len(df_copy) == 1:
-            return df_copy['Player_ID']
-        if len(df_copy) == 0:
-            return 'No match found'
-
-    return 'Multiple matches, further querying is needed'

@@ -34,24 +34,6 @@ class referee_info:
                   'Referee_ID': [self.referee_id()]}
         return self.row
 
-def match_referee(referee_info_df, match_dictionary):
-    df_copy = referee_info_df
-    for key, value in match_dictionary.items():
-        if key == 'href':
-            continue
-
-        if int(value) == value:
-            df_copy = df_copy.query(key + ' == ' + str(value))
-        else:
-            df_copy = df_copy.query(key + ' == "' + value + '"')
-
-        if len(df_copy) == 1:
-            return df_copy['Referee_ID']
-        if len(df_copy) == 0:
-            return 'No match found'
-
-    return 'Multiple matches, further querying is needed'
-
 class executive_info:
 
     def __init__(self, soup, url):
@@ -88,24 +70,6 @@ class executive_info:
                     'Teams': [self.teams()],
                     'Executive_ID': [self.executive_id()]}
         return self.row
-
-def match_executive(executive_info_df, match_dictionary):
-    df_copy = executive_info_df
-    for key, value in match_dictionary.items():
-        if key == 'href':
-            continue
-
-        if int(value) == value:
-            df_copy = df_copy.query(key + ' == ' + str(value))
-        else:
-            df_copy = df_copy.query(key + ' == "' + value + '"')
-
-        if len(df_copy) == 1:
-            return df_copy['Executive_ID']
-        if len(df_copy) == 0:
-            return 'No match found'
-
-    return 'Multiple matches, further querying is needed'
 
 class coach_info:
 
@@ -154,20 +118,3 @@ class coach_info:
                     'Coach_ID': [self.coach_id()]}
         return self.row
 
-def match_coach(coach_info_df, match_dictionary):
-    df_copy = coach_info_df
-    for key, value in match_dictionary.items():
-        if key == 'href':
-            continue
-
-        if int(value) == value:
-            df_copy = df_copy.query(key + ' == ' + str(value))
-        else:
-            df_copy = df_copy.query(key + ' == "' + value + '"')
-
-        if len(df_copy) == 1:
-            return df_copy['Coach_ID']
-        if len(df_copy) == 0:
-            return 'No match found'
-
-    return 'Multiple matches, further querying is needed'

@@ -87,12 +87,12 @@ class team_info:
                               'href': tag.attrs['href']}
         return self.coach_matches
 
-    def coach(self):
-        return self.Coach_ID
-
     def set_coach_id(self, In):
         self.co_id = In
         self.Coach_ID = self.co_id
+        return self.Coach_ID
+
+    def coach(self):
         return self.Coach_ID
 
     def output_row(self, ranking, executive_id, coach_id, prev_id = 0):
@@ -113,21 +113,3 @@ class team_info:
                     'Executive_ID': [self.Executive_ID],
                     'Coach_ID': [self.Coach_ID]}
         return self.row
-
-def match_team(team_info_df, match_dictionary):
-    df_copy = team_info_df
-    for key, value in match_dictionary.items():
-        if key == 'href':
-            continue
-
-        if int(value) == value:
-            df_copy = df_copy.query(key + ' == ' + str(value))
-        else:
-            df_copy = df_copy.query(key + ' == "' + value + '"')
-
-        if len(df_copy) == 1:
-            return df_copy['Team_ID']
-        if len(df_copy) == 0:
-            return 'No match found'
-
-    return 'Multiple matches, further querying is needed'
