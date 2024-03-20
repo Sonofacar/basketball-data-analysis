@@ -50,7 +50,7 @@ FOREIGN KEY(Away_Team_ID) REFERENCES team_info(Team_ID),
 FOREIGN KEY(Season) REFERENCES seasons(Season),
 FOREIGN KEY(Referee_ID1) REFERENCES referees(Referee_ID),
 FOREIGN KEY(Referee_ID2) REFERENCES referees(Referee_ID),
-FOREIGN KEY(Referee_ID3) REFERENCES referees(Referee_ID),
+FOREIGN KEY(Referee_ID3) REFERENCES referees(Referee_ID)
 );'''
 
 team_info = '''CREATE TABLE IF NOT EXISTS team_info(
