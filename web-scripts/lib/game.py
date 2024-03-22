@@ -181,9 +181,8 @@ class game_info:
         self.Season = int(self.soup.select('u')[1].text.split('-')[0]) + 1
         return self.Season
 
-    def referee_ids_match_dict(self):
-        self.referee_ids_matches = {'Names': self.Referee_Names,
-                                    'href': self.Referee_hrefs}
+    def referee_ids_match_dicts(self):
+        self.referee_ids_matches = [{'Name': self.Referee_Names[i], 'href': self.Referee_hrefs[i]} for i in range(len(self.Referee_Names))]
         return self.referee_ids_matches
 
     def set_referee_ids(self, In):

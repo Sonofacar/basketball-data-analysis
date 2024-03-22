@@ -1,20 +1,22 @@
-def match_referee(referee_info_df, match_dictionary):
+def match_referees(referee_info_df, match_dictionaries):
     df_copy = referee_info_df
-    for key, value in match_dictionary.items():
-        if key == 'href':
-            continue
+    output = []
+    for match in match_dictionaries:
+        for key, value in match.items():
+            if key == 'href':
+                output.append(match['href'])
+                continue
 
-        if int(value) == value:
-            df_copy = df_copy.query(key + ' == ' + str(value))
-        else:
-            df_copy = df_copy.query(key + ' == "' + value + '"')
+            if int(value) == value:
+                df_copy = df_copy.query(key + ' == ' + str(value))
+            else:
+                df_copy = df_copy.query(key + ' == "' + value + '"')
 
-        if len(df_copy) == 1:
-            return df_copy['Referee_ID']
-        if len(df_copy) == 0:
-            return 'No match found'
+            if len(df_copy) == 1:
+                output.append(df_copy['Referee_ID'])
+                continue
 
-    return 'Multiple matches, further querying is needed'
+    return output
 
 def match_executive(executive_info_df, match_dictionary):
     df_copy = executive_info_df
