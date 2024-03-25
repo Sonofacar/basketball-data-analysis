@@ -3,7 +3,7 @@ import sqlite3
 import sys
 
 # db.sql name given from command line
-db_name = sys.argv[1]
+db_name = '../bball_db'
 
 conn = sqlite3.connect(db_name)
 cur = conn.cursor()

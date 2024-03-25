@@ -18,7 +18,7 @@ from lib.matching import *
 
 # Other Variables
 base_url = 'https://www.basketball-reference.com'
-db_name = 'bball_db'
+db_name = '../bball_db'
 
 
 # Functions
