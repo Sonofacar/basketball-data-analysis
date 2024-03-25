@@ -2,9 +2,8 @@ import re
 
 class player_info:
     
-    def __init__(self, soup, url):
+    def __init__(self, soup):
         self.soup = soup
-        self.url = url
         self.hand_dict = {'Left': 'L', 'Right': 'R'}
 
     def header(self):

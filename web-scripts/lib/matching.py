@@ -7,13 +7,13 @@ def match_referees(referee_info_df, match_dictionaries):
                 output.append(match['href'])
                 continue
 
-            if int(value) == value:
+            if isinstance(value, int):
                 df_copy = df_copy.query(key + ' == ' + str(value))
             else:
                 df_copy = df_copy.query(key + ' == "' + value + '"')
 
             if len(df_copy) == 1:
-                output.append(df_copy['Referee_ID'])
+                output.append(df_copy['Referee_ID'].item())
                 continue
 
     return output
@@ -24,13 +24,13 @@ def match_executive(executive_info_df, match_dictionary):
         if key == 'href':
             continue
 
-        if int(value) == value:
+        if isinstance(value, int):
             df_copy = df_copy.query(key + ' == ' + str(value))
         else:
             df_copy = df_copy.query(key + ' == "' + value + '"')
 
         if len(df_copy) == 1:
-            return df_copy['Executive_ID']
+            return df_copy['Executive_ID'].item()
         if len(df_copy) == 0:
             return 'No match found'
 
@@ -42,13 +42,13 @@ def match_coach(coach_info_df, match_dictionary):
         if key == 'href':
             continue
 
-        if int(value) == value:
+        if isinstance(value, int):
             df_copy = df_copy.query(key + ' == ' + str(value))
         else:
             df_copy = df_copy.query(key + ' == "' + value + '"')
 
         if len(df_copy) == 1:
-            return df_copy['Coach_ID']
+            return df_copy['Coach_ID'].item()
         if len(df_copy) == 0:
             return 'No match found'
 
@@ -63,13 +63,13 @@ def match_player(player_info_df, match_dictionary):
         if key == 'Season':
             df_copy.loc[(df_copy['Draft_Year'] + df_copy['Career_Seasons'] >= value) & (df_copy['Draft_Year'] < value),]
 
-        if int(value) == value:
+        if isinstance(value, int):
             df_copy = df_copy.query(key + ' == ' + str(value))
         else:
             df_copy = df_copy.query(key + ' == "' + value + '"')
 
         if len(df_copy) == 1:
-            return df_copy['Player_ID']
+            return df_copy['Player_ID'].item()
         if len(df_copy) == 0:
             return 'No match found'
 
@@ -81,13 +81,13 @@ def match_team(team_info_df, match_dictionary):
         if key == 'href':
             continue
 
-        if int(value) == value:
+        if isinstance(value, int):
             df_copy = df_copy.query(key + ' == ' + str(value))
         else:
             df_copy = df_copy.query(key + ' == "' + value + '"')
 
         if len(df_copy) == 1:
-            return df_copy['Team_ID']
+            return df_copy['Team_ID'].item()
         if len(df_copy) == 0:
             return 'No match found'
 

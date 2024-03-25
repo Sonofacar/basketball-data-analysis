@@ -52,7 +52,7 @@ class season_info:
 
     def champion_match_dict(self):
         if not hasattr(self, 'champion_name'):
-            self.awards()
+            self.header()
         self.champion_matches = {'Name': self.champion_name,
                                  'Season': self.season(),
                                  'href': self.champion_href}

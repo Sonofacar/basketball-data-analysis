@@ -48,5 +48,5 @@ class page:
             self.agent_index = 0
 
         page = requests.get(url)
-        soup = BeautifulSoup(page.text)
+        soup = BeautifulSoup(page.text, features="lxml")
         return soup

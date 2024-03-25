@@ -66,9 +66,8 @@ class team_info:
 
     def executive_match_dict(self):
         selection = self.soup.select(self.executive_path)
-        tag = [tag for tag in selection if re.match('/executives', tag.attrs['href'])]
+        tag = [tag for tag in selection if re.match('/executives', tag.attrs['href'])][0]
         self.executive_matches = {'Name': tag.text,
-                                  'Season': self.Season(),
                                   'href': tag.attrs['href']}
         return self.executive_matches
 
@@ -81,9 +80,8 @@ class team_info:
 
     def coach_match_dict(self):
         selection = self.soup.select(self.coach_path)
-        tag = [tag for tag in selection if re.match('/coaches', tag.attrs['href'])]
+        tag = [tag for tag in selection if re.match('/coaches', tag.attrs['href'])][0]
         self.coach_matches = {'Name': tag.text,
-                              'Season': self.Season(),
                               'href': tag.attrs['href']}
         return self.coach_matches
 

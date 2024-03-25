@@ -1,8 +1,7 @@
 class referee_info:
 
-    def __init__(self, soup, url):
+    def __init__(self, soup):
         self.soup = soup
-        self.url = url
 
     def name(self):
         self.Name = self.soup.select('h1 span')[0].text
@@ -36,9 +35,8 @@ class referee_info:
 
 class executive_info:
 
-    def __init__(self, soup, url):
+    def __init__(self, soup):
         self.soup = soup
-        self.url = url
 
     def name(self):
         self.Name = self.soup.select('h1 span')[0].text
@@ -73,9 +71,8 @@ class executive_info:
 
 class coach_info:
 
-    def __init__(self, soup, url):
+    def __init__(self, soup):
         self.soup = soup
-        self.url = url
 
     def name(self):
         self.Name = self.soup.select('h1 span')[0].text

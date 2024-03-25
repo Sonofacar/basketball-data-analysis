@@ -1,5 +1,5 @@
 # Imports
-import re
+import sys
 import pandas
 
 pandas.options.mode.copy_on_write = True
@@ -10,8 +10,6 @@ from lib.utility_functions import *
 
 
 # Other Variables
-base_url = 'https://www.basketball-reference.com'
-db_name = '../bball_db'
 page = lib.get_page.page()
 
 
@@ -25,7 +23,7 @@ for i in seasons:
     season_href = generate_season_href(i)
     Seasons = get_season_info(page, season_href)
 
-    write_to_sql('season_info', Seasons)
+    write_to_sql('seasons', Seasons)
 
     # Get game hrefs
     month_hrefs = get_month_page_hrefs(page, i)
