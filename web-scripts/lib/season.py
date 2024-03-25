@@ -2,9 +2,8 @@ from bs4 import BeautifulSoup, Comment
 
 class season_info:
 
-    def __init__(self, soup, url):
+    def __init__(self, soup):
         self.soup = soup
-        self.url = url
 
     def header(self):
         for line in self.soup.select('#meta p'):

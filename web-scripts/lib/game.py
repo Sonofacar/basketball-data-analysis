@@ -194,11 +194,12 @@ class game_info:
     def referee_ids(self):
         return self.Referee_IDs
 
-    def output_row(self, prev, home_team_id, away_team_id, referee_ids):
-        self.generate_game_id(prev)
-        self.set_home_team_id(home_team_id)
-        self.set_away_team_id(away_team_id)
-        self.set_referee_ids(referee_ids)
+    def output_row(self):
+
+        if (self.Game_ID == 0) or (self.Home_Team_ID == 0) or (self.Away_Team_ID == 0) or (len(self.Referee_IDs) == 0):
+            print('Necessary values have not been set.')
+            return 0
+
         self.row = {
             'Home_Team_Name': [self.home_team_name()],
             'Away_Team_Name': [self.away_team_name()],
