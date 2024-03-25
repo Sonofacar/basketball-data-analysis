@@ -4,6 +4,8 @@ from bs4 import BeautifulSoup
 import pandas
 import sqlite3
 
+pandas.options.mode.copy_on_write = True
+
 # scraping library
 from lib.get_page import page
 from lib.season import season_info

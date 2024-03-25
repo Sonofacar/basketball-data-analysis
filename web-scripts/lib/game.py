@@ -1,6 +1,8 @@
 import pandas
 import re
 
+pandas.options.mode.copy_on_write = True
+
 class game_info:
 
     def __init__(self, soup):
@@ -221,7 +223,7 @@ class game_data(game_info):
         minutes = [int(str(x).split(':')[0]) for x in list(series)]
         seconds = [int(str(x).split(':')[1]) for x in list(series)]
         output = [(minutes[i] * 60) + seconds[i] for i in range(len(minutes))]
-        return pandas.Series(output)
+        return pandas.Series(output, dtype = 'int')
 
     def clean_table(self, table):
         table.columns = self.tmp_columns
@@ -264,6 +266,9 @@ class game_data(game_info):
         tmp_table = self.clean_table(tmp_table)
         tmp_table = pandas.concat([tmp_table, injured_table], ignore_index = True)
 
+        if tmp_table.loc[tmp_table.MP == 0].shape[0] == tmp_table.shape[0]:
+            return 1
+
         tmp_table['Win'] = Win
         tmp_table['Home'] = Home
 
@@ -305,6 +310,24 @@ class game_data(game_info):
     def get_data(self):
         self.total_game = self.empty_df
         self.quarters = self.empty_df
+
+        self.total_game['href'] = []
+        self.quarters['href'] = []
+        self.total_game['Injured'] = []
+        self.quarters['Injured'] = []
+        self.total_game['Win'] = []
+        self.quarters['Win'] = []
+        self.total_game['Home'] = []
+        self.quarters['Home'] = []
+        self.total_game['Player_ID'] = []
+        self.quarters['Player_ID'] = []
+        self.total_game['Game_ID'] = []
+        self.quarters['Game_ID'] = []
+        self.total_game['Season'] = []
+        self.quarters['Season'] = []
+        self.total_game['Team_ID'] = []
+        self.quarters['Team_ID'] = []
+        self.quarters['Quarter'] = []
 
         scores = [int(x.text) for x in self.soup.select('.score')]
         win = int(scores[0] > scores[1])
