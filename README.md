@@ -330,14 +330,13 @@ Once scraped, the following tables will be created in the `bball_db` sqlite data
 | Season | Integer | Season > 1990 | |
 | Games | Integer | | |
 | Teams | Integer | | |
-| Champion | Integer | | |
-| Finals_MVP | Integer | | |
-| MVP | Integer | | |
-| DPOY | Integer | | |
-| MIP | Integer | | |
-| SixMOTY | Integer | | |
-| ROTY | Integer | | |
-| COTY | Integer | | |
+| Champion | Integer | | team_info(Team_ID) |
+| Finals_MVP | Integer | | player_info(Player_ID) |
+| MVP | Integer | | player_info(Player_ID) |
+| DPOY | Integer | | player_info(Player_ID) |
+| MIP | Integer | | player_info(Player_ID) |
+| SixMOTY | Integer | | player_info(Player_ID) |
+| ROTY | Integer | | player_info(Player_ID) |
 
 ## referee_info
 | Column | Type | Requirements | References |
