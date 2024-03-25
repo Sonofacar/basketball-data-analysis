@@ -1,10 +1,18 @@
 # Imports
-from bs4 import BeautifulSoup
+import re
+import pandas
+
+pandas.options.mode.copy_on_write = True
 
 # scraping library
-from lib.get_page import page
-from lib.season import season_info
-from lib.game import game_data
-from lib.team import team_info
-from lib.player import player_info
-from lib.other_info import referee_info, executive_info, coach_info
+import lib.get_page
+from lib.utility_functions import *
+
+
+# Other Variables
+base_url = 'https://www.basketball-reference.com'
+db_name = '../bball_db'
+page = lib.get_page.page()
+
+
+# Main script

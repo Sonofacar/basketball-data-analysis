@@ -5,19 +5,14 @@ import pandas
 pandas.options.mode.copy_on_write = True
 
 # scraping library
-from lib.get_page import page
-from lib.season import season_info
-from lib.game import game_data
-from lib.team import team_info
-from lib.player import player_info
-from lib.other_info import referee_info, executive_info, coach_info
-from lib.matching import *
+import lib.get_page
 from lib.utility_functions import *
 
 
 # Other Variables
 base_url = 'https://www.basketball-reference.com'
 db_name = '../bball_db'
+page = lib.get_page.page()
 
 
 # Main script
@@ -28,19 +23,19 @@ seasons = range(beginning, end + 1)
 for i in seasons:
     # Season Info
     season_href = generate_season_href(i)
-    Seasons = get_season_info(season_href)
+    Seasons = get_season_info(page, season_href)
 
     write_to_sql('season_info', Seasons)
 
     # Get game hrefs
-    month_hrefs = get_month_page_hrefs(i)
+    month_hrefs = get_month_page_hrefs(page, i)
 
     for j in month_hrefs:
         soup = page.get(j)
         game_hrefs = [x.attrs['href'] for x in soup.select('.center a')]
 
         for k in game_hrefs:
-            game = get_game_data(k)
+            game = get_game_data(page_obj, k)
 
             if game.playoffs():
                 write_to_sql('playoff_game_info', pandas.DataFrame(game.output_row()))
