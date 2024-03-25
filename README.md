@@ -1,3 +1,6 @@
+Work in progress.
+
+This repo is for my own personal enjoyment and to showcase my skills in data analysis and webscraping.
 # Web-scraping Scripts
 
 To use,
@@ -6,17 +9,17 @@ first run the initialization script from the web-scripts directory:
 python3 initialize.py
 ```
 
-Then you can execute your choice of the scraping scripts.
-The `scrape-range.py` script requires two years as arguments and will scrape all information in that range:
+Then you can execute your choice of the scraping scripts (also from the web-scripts directory).
+The `scrape-range.py` script requires two years as arguments (must be later than 1990) and will scrape all information in that range:
 ```
 python3 scrape-range.py 2000 2023
 ```
 Be warned,
-this will take a *long* time.
+this will take a *long* time as it will wait for 3 seconds between each request to Basketball-Reference.
 
 The other is still in progress but will run similarly to get the data for a single day.
 
-# Ethics
+## Ethics
 
 All webscraping scripts run following Basketball-Reference's requested methods as specified in their robots.txt.
 
