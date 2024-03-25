@@ -130,8 +130,9 @@ def rankings(season):
     url = base_url + '/leagues/NBA_' + str(season) + '_standings.html'
     soup = page.get('url')
     table = soup.select('#expanded_standings > tbody')[0]
-    rows = table.find_all('tr')
-    ranks = {x.find(data-stat = 'team_name'): int(x.find(data-stat = 'ranker').text) for x in rows}
+    comment = [x for x in soup.find_all(string=lambda t: isinstance(t, Comment)) if 'expanded_standings' in x][0]
+    newsoup = BeautifulSoup(comment)
+    ranks = {x.find(attrs = {'data-stat': 'team_name'}).text: int(x.find('th').text) for x in newsoup.find_all('tr')[2:32]}
     return ranks
 
 def get_game_data(href):
