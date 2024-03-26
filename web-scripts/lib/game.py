@@ -94,10 +94,12 @@ class game_info:
         self.Injured_Home = []
         #self.Injured_Home_hrefs = []
         iteration = 0
-        if len(injured_children) == 0:
-            tmp = ['']
-        else:
-            tmp = injured_children[iteration]
+
+        exists = 'injured_children' in locals()
+        if not exists:
+            injured_children = ['', '']
+
+        tmp = injured_children[iteration]
 
         while (tmp != '') and (tmp != 'None'):
             self.Injured_Away.append(tmp)

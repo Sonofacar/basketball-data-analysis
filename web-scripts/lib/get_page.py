@@ -6,7 +6,7 @@ class page:
 
     base_url = 'https://basketball-reference.com'
     last_time = 0
-    wait_time = 3
+    wait_time = 4
 
     user_agents = ["Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.3.1 Safari/605.1.1",
                    "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Mobile Safari/537.3",
@@ -38,7 +38,7 @@ class page:
                    'Accept-Language': 'en-US,en;q=0.5',
                    'Accept-Encoding': 'gzip, deflate, br',
                    'Connection': 'keep-alive',
-                   'Cookie': 'sr_note_box_countdown=63; srcssfull=yes; is_live=true; usprivacy=1NYN; sr_n=1%7CTue%2C%2026%20Mar%202024%2001%3A44%3A59%20GMT',
+                   'Cookie': 'sr_note_box_countdown=47; srcssfull=yes; is_live=true; usprivacy=1NYN; sr_n=1%7CTue%2C%2026%20Mar%202024%2001%3A44%3A59%20GMT; __cf_bm=9.msJrpwm.xXzhQ1.FXyR_WXTKfxOEj3CehtphfekQo-1711435471-1.0.1.1-Af53Ht0BQKLpw7Ez_.W2SwU6g4JteYQobP5O9iqig3bMCz7Ss3C7QJx4gVMaEB_MnoioonwsKWY3QWTC2SdkQQ',
                    'Upgrade-Insecure-Requests': 1,
                    'Sec-Fetch-Dest': 'document',
                    'Sec-Fetch-Mode': 'navigate',
