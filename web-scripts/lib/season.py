@@ -13,7 +13,7 @@ class season_info:
 
     def awards(self):
         comment = [x for x in self.soup.find_all(string=lambda t: isinstance(t, Comment)) if 'award' in x][0]
-        new_soup = BeautifulSoup(comment.replace('\n', ''))
+        new_soup = BeautifulSoup(comment.replace('\n', ''), features = 'lxml')
         players = [x for x in new_soup.select('#all_awards a') if x.text != '']
         
         # MVP
@@ -84,7 +84,6 @@ class season_info:
 
     def set_finals_mvp(self, In):
         self.Finals_MVP = In
-        print(str(In))
         return self.Finals_MVP
 
     def finals_mvp(self):

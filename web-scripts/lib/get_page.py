@@ -6,6 +6,7 @@ class page:
 
     base_url = 'https://basketball-reference.com'
     last_time = 0
+    wait_time = 3
 
     user_agents = ["Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.3.1 Safari/605.1.1",
                    "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Mobile Safari/537.3",
@@ -32,21 +33,42 @@ class page:
     def get(self, href):
         url = self.base_url + href
 
-        current_time = time.time()
-        sleep_time = 3 - (current_time - self.last_time)
-
-        if sleep_time > 0:
-            time.sleep(sleep_time)
-            self.last_time = time.time()
-        else:
-            self.last_time = current_time
-
-        headers = {'User-Agent': self.user_agents[self.agent_index]}
+        headers = {'User-Agent': self.user_agents[self.agent_index],
+                   'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
+                   'Accept-Language': 'en-US,en;q=0.5',
+                   'Accept-Encoding': 'gzip, deflate, br',
+                   'Connection': 'keep-alive',
+                   'Cookie': 'sr_note_box_countdown=63; srcssfull=yes; is_live=true; usprivacy=1NYN; sr_n=1%7CTue%2C%2026%20Mar%202024%2001%3A44%3A59%20GMT',
+                   'Upgrade-Insecure-Requests': 1,
+                   'Sec-Fetch-Dest': 'document',
+                   'Sec-Fetch-Mode': 'navigate',
+                   'Sec-Fetch-Site': 'cross-site',
+                   'DNT': 1,
+                   'Sec-GPC': 1}
         self.agent_index += 1
 
         if self.agent_index == len(self.user_agents):
             self.agent_index = 0
 
+        current_time = time.time()
+        sleep_time = self.wait_time - (current_time - self.last_time)
+
+        if sleep_time > 0:
+            time.sleep(sleep_time)
+
+
         page = requests.get(url)
         soup = BeautifulSoup(page.text, features="lxml")
+        self.last_time = time.time()
+        time_string = time.strftime('%H:%M:%S', time.localtime(self.last_time))
+        print('Requesting: ' + href)
+        print('\t' + '    ' + time_string)
+
+        if not page.ok:
+            print('Sent too many requests in an hour... we will wait until out of jail.')
+            print('Will be out of jail an hour after:' + '\t' + time_string)
+            time.sleep(60 ** 2)
+            page = requests.get(url)
+            soup = BeautifulSoup(page.text, features="lxml")
+
         return soup

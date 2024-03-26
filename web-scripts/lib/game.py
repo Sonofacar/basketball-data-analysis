@@ -94,15 +94,18 @@ class game_info:
         self.Injured_Home = []
         #self.Injured_Home_hrefs = []
         iteration = 0
-        tmp = injured_children[iteration]
+        if len(injured_children) == 0:
+            tmp = ['']
+        else:
+            tmp = injured_children[iteration]
 
-        while tmp != '':
+        while (tmp != '') and (tmp != 'None'):
             self.Injured_Away.append(tmp)
             #self.Injured_Away_hrefs.append(self.Injured_hrefs[iteration])
             iteration += 1
             tmp = injured_children[iteration]
 
-        while tmp != '':
+        while (tmp != '') and (tmp != 'None'):
             self.Injured_Home.append(tmp)
             #self.Injured_Home_hrefs.append(self.Injured_hrefs[iteration])
             iteration += 1
@@ -231,6 +234,8 @@ class game_data(game_info):
         new_table = table.drop(table[table['Name'] == 'Reserves'].index)
         new_table = new_table.fillna(0)
         new_table = new_table.replace('Did Not Play', 0)
+        new_table = new_table.replace('Did Not Dress', 0)
+        new_table = new_table.replace('Player Suspended', 0)
         return new_table
 
     def injured_table(self, names):
@@ -428,7 +433,7 @@ class game_data(game_info):
     def team_data(self):
         Teams = [self.Home_Team_Name, self.Away_Team_Name]
         tmp_table = self.total_game[self.total_game.Name.str.contains('|'.join(Teams))]
-        output = {'Minutes': tmp_table['MP'],
+        output = {'Total_Minutes': tmp_table['MP'],
                   'Field_Goals': tmp_table['FG'],
                   'Field_Goal_Attempts': tmp_table['FGA'],
                   'Threes': tmp_table['3P'],
@@ -457,7 +462,7 @@ class game_data(game_info):
         Teams = [self.Home_Team_Name, self.Away_Team_Name]
         tmp_table = self.quarters[self.quarters.Name.str.contains('|'.join(Teams))]
         output = {'Quarter': tmp_table.Quarter,
-                  'Minutes': tmp_table['MP'],
+                  'Total_Minutes': tmp_table['MP'],
                   'Field_Goals': tmp_table['FG'],
                   'Field_Goal_Attempts': tmp_table['FGA'],
                   'Threes': tmp_table['3P'],

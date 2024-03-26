@@ -23,7 +23,8 @@ for i in seasons:
     season_href = generate_season_href(i)
     Seasons = get_season_info(page, season_href)
 
-    write_to_sql('seasons', Seasons)
+    if should_we_write('seasons', Seasons):
+        write_to_sql('seasons', Seasons)
 
     # Get game hrefs
     month_hrefs = get_month_page_hrefs(page, i)
@@ -33,7 +34,13 @@ for i in seasons:
         game_hrefs = [x.attrs['href'] for x in soup.select('.center a')]
 
         for k in game_hrefs:
-            game = get_game_data(page_obj, k)
+            game = get_game_data(page, k)
+            game_info = pandas.DataFrame(game.output_row())
+
+            if (not should_we_write('game_info', game_info)) or (not should_we_write('playoffs_game_info', game_info)):
+                continue
+
+            result = game.get_data()
 
             if game.playoffs():
                 write_to_sql('playoff_game_info', pandas.DataFrame(game.output_row()))

@@ -30,6 +30,7 @@ def get_game_hrefs(soup):
 
 def write_to_sql(table_name, data_frame):
     conn = sqlite3.Connection(db_name)
+    print('Writing: ' + table_name)
     data_frame.to_sql(name = table_name, con = conn, if_exists = 'append', index = False)
     conn.close()
 
@@ -38,6 +39,25 @@ def retrieve_from_sql(table_name):
     df = pandas.read_sql('SELECT * FROM ' + table_name, conn)
     conn.close()
     return df
+
+def should_we_write(table_name, data_frame):
+    if table_name == 'seasons':
+        tmp = retrieve_from_sql(table_name)
+        if len(tmp.loc[tmp['Season'] == data_frame['Season'].item()]) == 0:
+            return True
+        else:
+            return False
+
+    if table_name == 'game_info':
+        cols = ['Home_Team_Name', 'Away_Team_Name', 'Date']
+        tmp = retrieve_from_sql(table_name)
+        merge = tmp.merge(data_frame, 'outer', on = cols, indicator = True)
+        if len(merge[merge['_merge'] == 'both']) == 0:
+            return True
+        else:
+            return False
+
+    return True
 
 def get_player_info(page_obj, href):
     soup = page_obj.get(href)
@@ -115,7 +135,6 @@ def get_team_info(page_obj, href, ranking):
                                               exec_id,
                                               coach_id,
                                               maximum_team_id))
-    output.info()
     return output
 
 def rankings(page_obj, season):
@@ -131,12 +150,18 @@ def get_game_data(page_obj, href):
 
     game = game_data(soup)
 
+    print()
+    print('############')
+    print('# New Game #')
+    print('############')
+    print()
+
     # home_team_id
     db = retrieve_from_sql('team_info')
     matches = game.home_team_id_match_dict()
     home_id = match_team(db, matches)
     if not isinstance(home_id, int):
-        ranks = rankings(game.season())
+        ranks = rankings(page_obj, game.season())
         team_rank = ranks[matches['Name']]
         tmp = get_team_info(page_obj, matches['href'], team_rank)
         home_id = tmp['Team_ID'].item()
@@ -155,7 +180,7 @@ def get_game_data(page_obj, href):
 
     # referee_ids
     db = retrieve_from_sql('referee_info')
-    matches = game.referee_match_dicts()
+    matches = game.referee_ids_match_dicts()
     ref_ids = match_referees(db, matches)
     for index in range(len(ref_ids)):
         if not isinstance(ref_ids[index], int):
@@ -181,6 +206,15 @@ def get_season_info(page_obj, href):
     soup = page_obj.get(href)
 
     info = season_info(soup)
+
+    print()
+    print()
+    print('##############')
+    print('##############')
+    print('#### ' + str(info.season()) + ' ####')
+    print('##############')
+    print('##############')
+    print()
 
     # champion
     db = retrieve_from_sql('team_info')
