@@ -201,9 +201,10 @@ class game_info:
 
     def output_row(self):
 
-        if (self.Game_ID == 0) or (self.Home_Team_ID == 0) or (self.Away_Team_ID == 0) or (len(self.Referee_IDs) == 0):
+        exists = (hasattr(self, 'Game_ID') and hasattr(self, 'Home_Team_ID') and hasattr(self, 'Away_Team_ID') and hasattr(self, 'Referee_IDs'))
+        if not exists:
             print('Necessary values have not been set.')
-            return 0
+            return 1
 
         self.row = {
             'Home_Team_Name': [self.home_team_name()],
@@ -362,14 +363,6 @@ class game_data(game_info):
 
     def players_to_match(self):
         return self.total_game.loc[self.total_game == 0, ['Name', 'hrefs', 'Season', 'Team_ID']]
-
-    def set_player_ids(self, id_dict):
-        self.total_game['Player_ID'] = self.total_game['Name'].map(id_dict)
-
-        if self.total_game.loc[self.total_game.Player_ID == 0, ].shape[0] == 0:
-            return 1
-
-        return 0
 
     def player_data(self):
         Teams = [self.Home_Team_Name, self.Away_Team_Name]

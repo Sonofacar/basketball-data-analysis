@@ -145,6 +145,23 @@ def rankings(page_obj, season):
     ranks = {x.find(attrs = {'data-stat': 'team_name'}).text: int(x.find('th').text) for x in newsoup.find_all('tr')[2:32]}
     return ranks
 
+def get_player_id_mapping(page_obj, df):
+    tmp = df.loc[~df['href'].isna(),:].loc[df['Player_ID'] == 0,['Name', 'href']]
+    to_get = [[x[0], x[1]] for x in tmp.values]
+
+    mapping = {}
+
+    for name, href in to_get:
+        player_df = get_player_info(page_obj, href)
+        write_to_sql('player_info', player_df)
+        mapping.update({name: player_df['Player_ID'].item()})
+
+    return mapping
+
+def apply_player_id_mapping(game_obj, mapping):
+    game_obj.total_game.loc[game_obj.total_game['Player_ID'] == 0, 'Player_ID'] = game_obj.total_game['Name'].map(mapping)
+    game_obj.quarters.loc[game_obj.quarters['Player_ID'] == 0, 'Player_ID'] = game_obj.quarters['Name'].map(mapping)
+
 def get_game_data(page_obj, href):
     soup = page_obj.get(href)
 

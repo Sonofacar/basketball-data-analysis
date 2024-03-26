@@ -41,6 +41,8 @@ for i in seasons:
                 continue
 
             result = game.get_data()
+            mapping = get_player_id_mapping(page, game.total_game)
+            apply_player_id_mapping(game, mapping)
 
             if game.playoffs():
                 write_to_sql('playoff_game_info', pandas.DataFrame(game.output_row()))
