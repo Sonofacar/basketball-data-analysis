@@ -7,6 +7,8 @@ class page:
     base_url = 'https://basketball-reference.com'
     last_time = 0
     wait_time = 4
+    cache_size = 1000
+    cache = {}
 
     user_agents = ["Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.3.1 Safari/605.1.1",
                    "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Mobile Safari/537.3",
@@ -30,8 +32,29 @@ class page:
                    "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/24.0 Chrome/117.0.0.0 Mobile Safari/537.3"]
     agent_index = 0
 
+    def to_cache(self, href, soup):
+        if len(self.cache) == self.cache_size:
+            tmp = list(self.cache.items())
+            tmp.reverse()
+            out = tmp.pop()
+            tmp.reverse()
+            self.cache = dict(tmp)
+
+        self.cache.update({href: soup})
+
+    def check_cache(self, href):
+        try:
+            output = self.cache[href]
+        except:
+            output = 'Not found'
+
     def get(self, href):
         url = self.base_url + href
+
+        cache_status = self.check_cache(href)
+        
+        if cache_status != 'Not found':
+            return cache_status
 
         headers = {'User-Agent': self.user_agents[self.agent_index],
                    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
@@ -56,7 +79,6 @@ class page:
         if sleep_time > 0:
             time.sleep(sleep_time)
 
-
         page = requests.get(url)
         soup = BeautifulSoup(page.text, features="lxml")
         self.last_time = time.time()
@@ -70,5 +92,7 @@ class page:
             time.sleep(60 ** 2)
             page = requests.get(url)
             soup = BeautifulSoup(page.text, features="lxml")
+
+        self.to_cache(href, soup)
 
         return soup
