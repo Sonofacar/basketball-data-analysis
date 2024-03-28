@@ -20,7 +20,7 @@ def generate_season_href(season):
     return href
 
 def get_month_page_hrefs(page_obj, season):
-    soup = page_obj.get('/leagues/NBA_' + str(season) + '_games.html')
+    soup = page_obj.get('/leagues/NBA_' + str(season) + '_games.html', False)
     selection = soup.select('.filter a')
     return [x.attrs['href'] for x in selection]
 
@@ -60,7 +60,7 @@ def should_we_write(table_name, data_frame):
     return True
 
 def get_player_info(page_obj, href):
-    soup = page_obj.get(href)
+    soup = page_obj.get(href, True)
 
     db = retrieve_from_sql('player_info')
     maximum_id = db['Player_ID'].max()
@@ -70,7 +70,7 @@ def get_player_info(page_obj, href):
     return output
 
 def get_coach_info(page_obj, href):
-    soup = page_obj.get(href)
+    soup = page_obj.get(href, True)
 
     db = retrieve_from_sql('coach_info')
     maximum_id = db['Coach_ID'].max()
@@ -80,7 +80,7 @@ def get_coach_info(page_obj, href):
     return output
 
 def get_executive_info(page_obj, href):
-    soup = page_obj.get(href)
+    soup = page_obj.get(href, True)
 
     db = retrieve_from_sql('executive_info')
     maximum_id = db['Executive_ID'].max()
@@ -90,7 +90,7 @@ def get_executive_info(page_obj, href):
     return output
 
 def get_referee_info(page_obj, href):
-    soup = page_obj.get(href)
+    soup = page_obj.get(href, True)
 
     db = retrieve_from_sql('referee_info')
     maximum_id = db['Referee_ID'].max()
@@ -100,9 +100,9 @@ def get_referee_info(page_obj, href):
     return output
 
 def get_team_info(page_obj, href, ranking):
-    soup = page_obj.get(href)
+    soup = page_obj.get(href, True)
     franchise_href = re.sub(r'[0-9]{4}.html', '', href)
-    franchise_soup = page_obj.get(franchise_href)
+    franchise_soup = page_obj.get(franchise_href, False)
     
     info = team_info(franchise_soup, soup, base_url + href)
 
@@ -139,7 +139,7 @@ def get_team_info(page_obj, href, ranking):
 
 def rankings(page_obj, season):
     href = '/leagues/NBA_' + str(season) + '_standings.html'
-    soup = page_obj.get(href)
+    soup = page_obj.get(href, False)
     comment = [x for x in soup.find_all(string=lambda t: isinstance(t, Comment)) if 'expanded_standings' in x][0]
     newsoup = BeautifulSoup(comment, features="lxml")
     ranks = {x.find(attrs = {'data-stat': 'team_name'}).text: int(x.find('th').text) for x in newsoup.find_all('tr')[2:32]}
@@ -163,7 +163,7 @@ def apply_player_id_mapping(game_obj, mapping):
     game_obj.quarters.loc[game_obj.quarters['Player_ID'] == 0, 'Player_ID'] = game_obj.quarters['Name'].map(mapping)
 
 def get_game_data(page_obj, href):
-    soup = page_obj.get(href)
+    soup = page_obj.get(href, False)
 
     game = game_data(soup)
 
@@ -220,7 +220,7 @@ def get_game_data(page_obj, href):
     return game
 
 def get_season_info(page_obj, href):
-    soup = page_obj.get(href)
+    soup = page_obj.get(href, False)
 
     info = season_info(soup)
 
@@ -246,7 +246,7 @@ def get_season_info(page_obj, href):
 
     # finals_mvp
     db = retrieve_from_sql('player_info')
-    playoffs_soup = page_obj.get('/playoffs/NBA_' + str(info.season()) + '.html')
+    playoffs_soup = page_obj.get('/playoffs/NBA_' + str(info.season()) + '.html', False)
     matches = info.finals_mvp_match_dict(playoffs_soup)
     finals_mvp = match_player(db, matches)
     if not isinstance(finals_mvp, int):

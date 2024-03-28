@@ -48,12 +48,14 @@ class page:
         except:
             output = 'Not found'
 
-    def get(self, href):
+    def get(self, href, cache):
         url = self.base_url + href
 
-        cache_status = self.check_cache(href)
+        if cache:
+            cache_status = self.check_cache(href)
         
         if cache_status != 'Not found':
+            print('From cache: ' + href)
             return cache_status
 
         headers = {'User-Agent': self.user_agents[self.agent_index],
@@ -93,6 +95,7 @@ class page:
             page = requests.get(url)
             soup = BeautifulSoup(page.text, features="lxml")
 
-        self.to_cache(href, soup)
+        if cache:
+            self.to_cache(href, soup)
 
         return soup
