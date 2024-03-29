@@ -11,6 +11,7 @@ from lib.utility_functions import *
 
 # Other Variables
 page = lib.get_page.page()
+id_cache = {}
 
 
 # Main script
@@ -21,7 +22,7 @@ seasons = range(beginning, end + 1)
 for i in seasons:
     # Season Info
     season_href = generate_season_href(i)
-    Seasons = get_season_info(page, season_href)
+    Seasons = get_season_info(page, season_href, id_cache)
 
     if should_we_write('seasons', Seasons):
         write_to_sql('seasons', Seasons)
@@ -34,15 +35,13 @@ for i in seasons:
         game_hrefs = [x.attrs['href'] for x in soup.select('.center a')]
 
         for k in game_hrefs:
-            game = get_game_data(page, k)
+            game = get_game_data(page, k, id_cache)
             game_info = pandas.DataFrame(game.output_row())
 
             if (not should_we_write('game_info', game_info)) or (not should_we_write('playoffs_game_info', game_info)):
                 continue
 
             result = game.get_data()
-            mapping = get_player_id_mapping(page, game.total_game)
-            apply_player_id_mapping(game, mapping)
 
             if game.playoffs():
                 write_to_sql('playoff_game_info', pandas.DataFrame(game.output_row()))

@@ -18,23 +18,23 @@ class season_info:
         
         # MVP
         self.mvp_name = players[0].text
-        self.mvp_href = players[0].attrs['href']
+        self.MVP_href = players[0].attrs['href']
 
         # ROTY
         self.roty_name = players[1].text
-        self.roty_href = players[1].attrs['href']
+        self.ROTY_href = players[1].attrs['href']
 
         # DPOY
         self.dpoy_name = players[2].text
-        self.dpoy_href = players[2].attrs['href']
+        self.DPOY_href = players[2].attrs['href']
 
         # MIP
         self.mip_name = players[3].text
-        self.mip_href = players[3].attrs['href']
+        self.MIP_href = players[3].attrs['href']
 
         # SixMOTY
         self.sixmoty_name = players[4].text
-        self.sixmoty_href = players[4].attrs['href']
+        self.SixMOTY_href = players[4].attrs['href']
 
     def season(self):
         self.Season = int(self.soup.select('h1 span')[0].text.split('-')[0]) + 1
@@ -50,13 +50,8 @@ class season_info:
         self.Teams = len(teams)
         return self.Teams
 
-    def champion_match_dict(self):
-        if not hasattr(self, 'champion_name'):
-            self.header()
-        self.champion_matches = {'Name': self.champion_name,
-                                 'Season': self.season(),
-                                 'href': self.champion_href}
-        return self.champion_matches
+    def champion_href(self):
+        return self.champion_href
 
     def set_champion(self, In):
         self.Champion = In
@@ -65,22 +60,10 @@ class season_info:
     def champion(self):
         return self.Champion
 
-    def finals_mvp_url(self):
-        href = self.soup.select('.drophover a')[0].attrs['href']
-        return 'https://www.basketball-reference.com' + href
-
-    def finals_mvp_info(self, playoffs_soup):
+    def finals_mvp_href(self, playoffs_soup):
         selection = [x.find('a') for x in playoffs_soup.select('#meta p') if 'Finals MVP' in x.text][0]
-        self.finals_mvp_name = selection.text
-        self.finals_mvp_href = selection.attrs['href']
-
-    def finals_mvp_match_dict(self, playoffs_soup):
-        if not hasattr(self, 'finals_mvp_name'):
-            self.finals_mvp_info(playoffs_soup)
-        self.finals_mvp_matches = {'Name': self.finals_mvp_name,
-                                   'Season': self.season(),
-                                   'href': self.finals_mvp_href}
-        return self.finals_mvp_matches
+        self.Finals_MVP_href = selection.attrs['href']
+        return self.Finals_MVP_href
 
     def set_finals_mvp(self, In):
         self.Finals_MVP = In
@@ -89,13 +72,8 @@ class season_info:
     def finals_mvp(self):
         return self.Finals_MVP
 
-    def mvp_match_dict(self):
-        if not hasattr(self, 'mvp_name'):
-            self.awards()
-        self.mvp_matches = {'Name': self.mvp_name,
-                            'Season': self.season(),
-                            'href': self.mvp_href}
-        return self.mvp_matches
+    def mvp_href(self):
+        return self.MVP_href
 
     def set_mvp(self, In):
         self.MVP = In
@@ -104,13 +82,8 @@ class season_info:
     def mvp(self):
         return self.MVP
 
-    def dpoy_match_dict(self):
-        if not hasattr(self, 'dpoy_name'):
-            self.awards()
-        self.dpoy_matches = {'Name': self.dpoy_name,
-                             'Season': self.season(),
-                             'href': self.dpoy_href}
-        return self.dpoy_matches
+    def dpoy_href(self):
+        return self.DPOY_href
 
     def set_dpoy(self, In):
         self.DPOY = In
@@ -119,13 +92,8 @@ class season_info:
     def dpoy(self):
         return self.DPOY
 
-    def mip_match_dict(self):
-        if not hasattr(self, 'mip_name'):
-            self.awards()
-        self.mip_matches = {'Name': self.mip_name,
-                            'Season': self.season(),
-                            'href': self.mip_href}
-        return self.mip_matches
+    def mip_href(self):
+        return self.MIP_href
 
     def set_mip(self, In):
         self.MIP = In
@@ -134,13 +102,8 @@ class season_info:
     def mip(self):
         return self.MIP
 
-    def sixmoty_match_dict(self):
-        if not hasattr(self, 'sixmoty_name'):
-            self.awards()
-        self.sixmoty_matches = {'Name': self.sixmoty_name,
-                                'Season': self.season(),
-                                'href': self.sixmoty_href}
-        return self.sixmoty_matches
+    def sixmoty_href(self):
+        return self.SixMOTY_href
 
     def set_sixmoty(self, In):
         self.SixMOTY = In
@@ -149,13 +112,8 @@ class season_info:
     def sixmoty(self):
         return self.SixMOTY
 
-    def roty_match_dict(self):
-        if not hasattr(self, 'roty_name'):
-            self.awards()
-        self.roty_matches = {'Name': self.roty_name,
-                             'Season': self.season(),
-                             'href': self.roty_href}
-        return self.roty_matches
+    def roty_href(self):
+        return self.ROTY_href
 
     def set_roty(self, In):
         self.ROTY = In

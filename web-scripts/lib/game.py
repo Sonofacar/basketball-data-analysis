@@ -158,11 +158,8 @@ class game_info:
     def game_id(self):
         return self.Game_ID
 
-    def home_team_id_match_dict(self):
-        self.home_team_id_matches = {'Name': self.home_team_name(),
-                                     'Season': self.season(),
-                                     'href': self.Home_Team_Name_href}
-        return self.home_team_id_matches
+    def home_team_href(self):
+        return self.Home_Team_Name_href
 
     def set_home_team_id(self, In):
         self.Home_Team_ID = In
@@ -171,11 +168,8 @@ class game_info:
     def home_team_id(self):
         return self.Home_Team_ID
 
-    def away_team_id_match_dict(self):
-        self.away_team_id_matches = {'Name': self.away_team_name(),
-                                     'Season': self.season(),
-                                     'href': self.Away_Team_Name_href}
-        return self.away_team_id_matches
+    def away_team_href(self):
+        return self.Away_Team_Name_href
 
     def set_away_team_id(self, In):
         self.Away_Team_ID = In
@@ -188,9 +182,8 @@ class game_info:
         self.Season = int(self.soup.select('u')[1].text.split('-')[0]) + 1
         return self.Season
 
-    def referee_ids_match_dicts(self):
-        self.referee_ids_matches = [{'Name': self.Referee_Names[i], 'href': self.Referee_hrefs[i]} for i in range(len(self.Referee_Names))]
-        return self.referee_ids_matches
+    def referee_hrefs(self):
+        return self.Referee_hrefs
 
     def set_referee_ids(self, In):
         self.Referee_IDs = In
@@ -361,8 +354,11 @@ class game_data(game_info):
         self.total_game.loc[self.total_game['href'].isna(), 'href'] = self.total_game.loc[self.total_game['href'].isna(), 'Name'].map(self.Injured_dict)
         self.quarters.loc[self.quarters['href'].isna(), 'href'] = self.quarters.loc[self.quarters['href'].isna(), 'Name'].map(self.Injured_dict)
 
-    def players_to_match(self):
-        return self.total_game.loc[self.total_game == 0, ['Name', 'hrefs', 'Season', 'Team_ID']]
+    def apply_matches(self, matches):
+        tmp = self.total_game.loc[self.total_game['Player_ID'] == 0, 'Player_ID'].map(matches)
+        self.total_game.loc[self.total_game['Player_ID'] == 0, 'Player_ID'] = tmp
+        tmp = self.quarters.loc[self.quarters['Player_ID'] == 0, 'Player_ID'].map(matches)
+        self.quarters.loc[self.quarters['Player_ID'] == 0, 'Player_ID'] = tmp
 
     def player_data(self):
         Teams = [self.Home_Team_Name, self.Away_Team_Name]

@@ -59,47 +59,71 @@ def should_we_write(table_name, data_frame):
 
     return True
 
-def get_player_info(page_obj, href):
+def get_player_info(page_obj, href, id_cache_dict):
     soup = page_obj.get(href, True)
 
     db = retrieve_from_sql('player_info')
-    maximum_id = db['Player_ID'].max()
+
+    if len(db) == 0:
+        maximum_id = 0
+    else:
+        maximum_id = db['Player_ID'].max()
+
+    id_cache_dict.update({href: maximum_id})
 
     info = player_info(soup)
     output = pandas.DataFrame(info.output_row(maximum_id))
     return output
 
-def get_coach_info(page_obj, href):
+def get_coach_info(page_obj, href, id_cache_dict):
     soup = page_obj.get(href, True)
 
     db = retrieve_from_sql('coach_info')
-    maximum_id = db['Coach_ID'].max()
+
+    if len(db) == 0:
+        maximum_id = 0
+    else:
+        maximum_id = db['Coach_ID'].max()
+
+    id_cache_dict.update({href: maximum_id})
 
     info = coach_info(soup)
     output = pandas.DataFrame(info.output_row(maximum_id))
     return output
 
-def get_executive_info(page_obj, href):
+def get_executive_info(page_obj, href, id_cache_dict):
     soup = page_obj.get(href, True)
 
     db = retrieve_from_sql('executive_info')
-    maximum_id = db['Executive_ID'].max()
+
+    if len(db) == 0:
+        maximum_id = 0
+    else:
+        maximum_id = db['Executive_ID'].max()
+
+    id_cache_dict.update({href: maximum_id})
 
     info = executive_info(soup)
     output = pandas.DataFrame(info.output_row(maximum_id))
     return output
 
-def get_referee_info(page_obj, href):
+def get_referee_info(page_obj, href, id_cache_dict):
     soup = page_obj.get(href, True)
 
     db = retrieve_from_sql('referee_info')
-    maximum_id = db['Referee_ID'].max()
+
+    if len(db) == 0:
+        maximum_id = 0
+    else:
+        maximum_id = db['Referee_ID'].max()
+
+    id_cache_dict.update({href: maximum_id})
 
     info = referee_info(soup)
     output = pandas.DataFrame(info.output_row(maximum_id))
     return output
 
-def get_team_info(page_obj, href, ranking):
+def get_team_info(page_obj, href, ranking, id_cache_dict):
     soup = page_obj.get(href, True)
     franchise_href = re.sub(r'[0-9]{4}.html', '', href)
     franchise_soup = page_obj.get(franchise_href, False)
@@ -107,20 +131,18 @@ def get_team_info(page_obj, href, ranking):
     info = team_info(franchise_soup, soup, base_url + href)
 
     # Executive ID
-    db = retrieve_from_sql('executive_info')
-    matches = info.executive_match_dict()
-    exec_id = match_executive(db, matches)
-    if not isinstance(exec_id, int):
-        tmp = get_executive_info(page_obj, matches['href'])
+    try:
+        exec_id = id_cache_dict[info.executive_href()]
+    except:
+        tmp = get_executive_info(page_obj, info.executive_href(), id_cache_dict)
         exec_id = tmp['Executive_ID'].item()
         write_to_sql('executive_info', tmp)
 
     # Coach ID
-    db = retrieve_from_sql('coach_info')
-    matches = info.coach_match_dict()
-    coach_id = match_executive(db, matches)
-    if not isinstance(coach_id, int):
-        tmp = get_coach_info(page_obj, matches['href'])
+    try:
+        coach_id = id_cache_dict[info.coach_href()]
+    except:
+        tmp = get_coach_info(page_obj, ino.coach_href(), id_cache_dict)
         coach_id = tmp['Coach_ID'].item()
         write_to_sql('coach_info', tmp)
 
@@ -145,24 +167,7 @@ def rankings(page_obj, season):
     ranks = {x.find(attrs = {'data-stat': 'team_name'}).text: int(x.find('th').text) for x in newsoup.find_all('tr')[2:32]}
     return ranks
 
-def get_player_id_mapping(page_obj, df):
-    tmp = df.loc[~df['href'].isna(),:].loc[df['Player_ID'] == 0,['Name', 'href']]
-    to_get = [[x[0], x[1]] for x in tmp.values]
-
-    mapping = {}
-
-    for name, href in to_get:
-        player_df = get_player_info(page_obj, href)
-        write_to_sql('player_info', player_df)
-        mapping.update({name: player_df['Player_ID'].item()})
-
-    return mapping
-
-def apply_player_id_mapping(game_obj, mapping):
-    game_obj.total_game.loc[game_obj.total_game['Player_ID'] == 0, 'Player_ID'] = game_obj.total_game['Name'].map(mapping)
-    game_obj.quarters.loc[game_obj.quarters['Player_ID'] == 0, 'Player_ID'] = game_obj.quarters['Name'].map(mapping)
-
-def get_game_data(page_obj, href):
+def get_game_data(page_obj, href, id_cache_dict):
     soup = page_obj.get(href, False)
 
     game = game_data(soup)
@@ -174,43 +179,42 @@ def get_game_data(page_obj, href):
     print()
 
     # home_team_id
-    db = retrieve_from_sql('team_info')
-    matches = game.home_team_id_match_dict()
-    home_id = match_team(db, matches)
-    if not isinstance(home_id, int):
+    try:
+        home_id = id_cache_dict[game.home_team_href()]
+    except:
         ranks = rankings(page_obj, game.season())
         team_rank = ranks[matches['Name']]
-        tmp = get_team_info(page_obj, matches['href'], team_rank)
+        tmp = get_team_info(page_obj, game.home_team_href(), team_rank, id_cache_dict)
         home_id = tmp['Team_ID'].item()
         write_to_sql('team_info', tmp)
 
     # away_team_id
-    db = retrieve_from_sql('team_info')
-    matches = game.away_team_id_match_dict()
-    away_id = match_team(db, matches)
-    if not isinstance(away_id, int):
+    try:
+        away_id = id_cache_dict[game.away_team_href()]
+    except:
         ranks = rankings(page_obj, game.season())
         team_rank = ranks[matches['Name']]
-        tmp = get_team_info(page_obj, matches['href'], team_rank)
+        tmp = get_team_info(page_obj, game.away_team_href(), team_rank, id_cache_dict)
         away_id = tmp['Team_ID'].item()
         write_to_sql('team_info', tmp)
 
     # referee_ids
-    db = retrieve_from_sql('referee_info')
-    matches = game.referee_ids_match_dicts()
-    ref_ids = match_referees(db, matches)
-    for index in range(len(ref_ids)):
-        if not isinstance(ref_ids[index], int):
-            tmp = get_referee_info(page_obj, ref_ids[index])
-            ref_ids[index] = tmp['Referee_ID'].item()
+    ref_ids = []
+    for ref_href in game.referee_hrefs():
+        try:
+            ref_ids.append(id_cache_dict[ref_href])
+        except:
+            tmp = get_referee_info(page_obj, ref_href, id_cache_dict)
+            ref_ids.append(tmp['Referee_ID'].item())
             write_to_sql('referee_info', tmp)
 
     # prev
     db = retrieve_from_sql('game_info')
-    maximum_id = db['Game_ID'].max()
 
-    if pandas.isna(maximum_id):
+    if len(db) == 0:
         maximum_id = 0
+    else:
+        maximum_id = db['Game_ID'].max()
 
     game.generate_game_id(maximum_id)
     game.set_home_team_id(home_id)
@@ -219,10 +223,13 @@ def get_game_data(page_obj, href):
 
     return game
 
-def get_season_info(page_obj, href):
+def get_season_info(page_obj, href, id_cache_dict):
     soup = page_obj.get(href, False)
 
     info = season_info(soup)
+
+    info.header()
+    info.awards()
 
     print()
     print()
@@ -234,68 +241,61 @@ def get_season_info(page_obj, href):
     print()
 
     # champion
-    db = retrieve_from_sql('team_info')
-    matches = info.champion_match_dict()
-    champ_id = match_team(db, matches)
-    if not isinstance(champ_id, int):
+    try:
+        champ_id = id_cache_dict[info.champion_href()]
+    except:
         ranks = rankings(page_obj, info.season())
         team_rank = ranks[matches['Name']]
-        tmp = get_team_info(page_obj, matches['href'], team_rank)
+        tmp = get_team_info(page_obj, matches['href'], team_rank, id_cache_dict)
         champ_id = tmp['Team_ID'].item()
         write_to_sql('team_info', tmp)
 
     # finals_mvp
-    db = retrieve_from_sql('player_info')
     playoffs_soup = page_obj.get('/playoffs/NBA_' + str(info.season()) + '.html', False)
-    matches = info.finals_mvp_match_dict(playoffs_soup)
-    finals_mvp = match_player(db, matches)
-    if not isinstance(finals_mvp, int):
-        tmp = get_player_info(page_obj, matches['href'])
+    try:
+        finals_mvp = id_cache_dict[info.finals_mvp_href(playofs_soup)]
+    except:
+        tmp = get_player_info(page_obj, info.finals_mvp_href(playofs_soup), id_cache_dict)
         finals_mvp = tmp['Player_ID'].item()
         write_to_sql('player_info', tmp)
 
     # mvp
-    db = retrieve_from_sql('player_info')
-    matches = info.mvp_match_dict()
-    mvp = match_player(db, matches)
-    if not isinstance(mvp, int):
-        tmp = get_player_info(page_obj, matches['href'])
+    try:
+        mvp = id_cache_dict[info.mvp_href()]
+    except:
+        tmp = get_player_info(page_obj, info.mvp_href(), id_cache_dict)
         mvp = tmp['Player_ID'].item()
         write_to_sql('player_info', tmp)
 
     # dpoy
-    db = retrieve_from_sql('player_info')
-    matches = info.dpoy_match_dict()
-    dpoy = match_player(db, matches)
-    if not isinstance(dpoy, int):
-        tmp = get_player_info(page_obj, matches['href'])
+    try:
+        dpoy = id_cache_dict[info.dpoy_href()]
+    except:
+        tmp = get_player_info(page_obj, info.dpoy_href(), id_cache_dict)
         dpoy = tmp['Player_ID'].item()
         write_to_sql('player_info', tmp)
 
     # mip
-    db = retrieve_from_sql('player_info')
-    matches = info.mip_match_dict()
-    mip = match_player(db, matches)
-    if not isinstance(mip, int):
-        tmp = get_player_info(page_obj, matches['href'])
+    try:
+        mip = id_cache_dict[info.mip_href()]
+    except:
+        tmp = get_player_info(page_obj, info.mip_href(), id_cache_dict)
         mip = tmp['Player_ID'].item()
         write_to_sql('player_info', tmp)
 
     # sixmoty
-    db = retrieve_from_sql('player_info')
-    matches = info.sixmoty_match_dict()
-    sixmoty = match_player(db, matches)
-    if not isinstance(sixmoty, int):
-        tmp = get_player_info(page_obj, matches['href'])
+    try:
+        sixmoty = id_cache_dict[info.sixmoty_href()]
+    except:
+        tmp = get_player_info(page_obj, info.sixmoty_href(), id_cache_dict)
         sixmoty = tmp['Player_ID'].item()
         write_to_sql('player_info', tmp)
 
     # roty
-    db = retrieve_from_sql('player_info')
-    matches = info.roty_match_dict()
-    roty = match_player(db, matches)
-    if not isinstance(roty, int):
-        tmp = get_player_info(page_obj, matches['href'])
+    try:
+        roty = id_cache_dict[info.roty_href()]
+    except:
+        tmp = get_player_info(page_obj, info.roty_href(), id_cache_dict)
         roty = tmp['Player_ID'].item()
         write_to_sql('player_info', tmp)
 

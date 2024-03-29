@@ -64,12 +64,10 @@ class team_info:
         self.Season = self.url.split('/')[5].replace('.html', '')
         return self.Season
 
-    def executive_match_dict(self):
+    def executive_href(self):
         selection = self.soup.select(self.executive_path)
-        tag = [tag for tag in selection if re.match('/executives', tag.attrs['href'])][0]
-        self.executive_matches = {'Name': tag.text,
-                                  'href': tag.attrs['href']}
-        return self.executive_matches
+        self.executive_href = [tag.attrs['href'] for tag in selection if re.match('/executives', tag.attrs['href'])][0]
+        return self.kxecutive_href
 
     def set_executive_id(self, In):
         self.Executive_ID = In
@@ -78,12 +76,10 @@ class team_info:
     def executive(self):
         return self.Executive_ID
 
-    def coach_match_dict(self):
+    def coach_href(self):
         selection = self.soup.select(self.coach_path)
-        tag = [tag for tag in selection if re.match('/coaches', tag.attrs['href'])][0]
-        self.coach_matches = {'Name': tag.text,
-                              'href': tag.attrs['href']}
-        return self.coach_matches
+        self.Coach_href = [tag.attrs['href'] for tag in selection if re.match('/coaches', tag.attrs['href'])][0]
+        return self.Coach_href
 
     def set_coach_id(self, In):
         self.co_id = In
