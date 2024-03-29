@@ -8,8 +8,7 @@ class season_info:
     def header(self):
         for line in self.soup.select('#meta p'):
             if 'League Champion' in line.text:
-                self.champion_name = line.find('a').text
-                self.champion_href = line.find('a').attrs['href']
+                self.Champion_href = line.find('a').attrs['href']
 
     def awards(self):
         comment = [x for x in self.soup.find_all(string=lambda t: isinstance(t, Comment)) if 'award' in x][0]
@@ -51,7 +50,7 @@ class season_info:
         return self.Teams
 
     def champion_href(self):
-        return self.champion_href
+        return self.Champion_href
 
     def set_champion(self, In):
         self.Champion = In

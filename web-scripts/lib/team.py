@@ -7,8 +7,13 @@ class team_info:
         self.soup = soup
         self.url = url
 
-        self.coach_path = 'p:nth-child(4) a'
-        self.executive_path = 'p:nth-child(5) a'
+        for x in self.soup.select('#meta div a'):
+
+            if 'coaches' in x.attrs['href']:
+                self.Coach_href = x.attrs['href']
+
+            if 'executives' in x.attrs['href']:
+                self.Executive_href = x.attrs['href']
 
     def set_franchise_index(self):
         # Needed for:
@@ -65,9 +70,7 @@ class team_info:
         return self.Season
 
     def executive_href(self):
-        selection = self.soup.select(self.executive_path)
-        self.executive_href = [tag.attrs['href'] for tag in selection if re.match('/executives', tag.attrs['href'])][0]
-        return self.kxecutive_href
+        return self.Executive_href
 
     def set_executive_id(self, In):
         self.Executive_ID = In
@@ -77,8 +80,6 @@ class team_info:
         return self.Executive_ID
 
     def coach_href(self):
-        selection = self.soup.select(self.coach_path)
-        self.Coach_href = [tag.attrs['href'] for tag in selection if re.match('/coaches', tag.attrs['href'])][0]
         return self.Coach_href
 
     def set_coach_id(self, In):

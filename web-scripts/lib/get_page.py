@@ -45,18 +45,23 @@ class page:
     def check_cache(self, href):
         try:
             output = self.cache[href]
+            success = True
         except:
             output = 'Not found'
+            success = False
+
+        return success, output
 
     def get(self, href, cache):
         url = self.base_url + href
 
+        cache_status = 'Not found'
+
         if cache:
-            cache_status = self.check_cache(href)
+            status, soup = self.check_cache(href)
         
-        if cache_status != 'Not found':
+        if cache and status:
             print('From cache: ' + href)
-            return cache_status
 
         headers = {'User-Agent': self.user_agents[self.agent_index],
                    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',

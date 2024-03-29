@@ -10,6 +10,11 @@ class game_info:
 
         self.teams = self.soup.select('.scorebox strong a')
 
+        self.Home_Team_Name = self.teams[1].text
+        self.Home_Team_href = self.teams[1].attrs['href']
+        self.Away_Team_Name = self.teams[0].text
+        self.Away_Team_href = self.teams[0].attrs['href']
+
         self.heading = self.soup.select('h1')[0].text
 
         self.Attendance = 0
@@ -128,13 +133,9 @@ class game_info:
         return output
 
     def home_team_name(self):
-        self.Home_Team_Name = self.teams[1].text
-        self.Home_Team_Name_href = self.teams[1].attrs['href']
         return self.Home_Team_Name
 
     def away_team_name(self):
-        self.Away_Team_Name = self.teams[0].text
-        self.Away_Team_Name_href = self.teams[0].attrs['href']
         return self.Away_Team_Name
 
     def date(self):
@@ -159,7 +160,7 @@ class game_info:
         return self.Game_ID
 
     def home_team_href(self):
-        return self.Home_Team_Name_href
+        return self.Home_Team_href
 
     def set_home_team_id(self, In):
         self.Home_Team_ID = In
@@ -169,7 +170,7 @@ class game_info:
         return self.Home_Team_ID
 
     def away_team_href(self):
-        return self.Away_Team_Name_href
+        return self.Away_Team_href
 
     def set_away_team_id(self, In):
         self.Away_Team_ID = In

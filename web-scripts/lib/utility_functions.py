@@ -123,7 +123,7 @@ def get_referee_info(page_obj, href, id_cache_dict):
     output = pandas.DataFrame(info.output_row(maximum_id))
     return output
 
-def get_team_info(page_obj, href, ranking, id_cache_dict):
+def get_team_info(page_obj, href, rank_obj, id_cache_dict):
     soup = page_obj.get(href, True)
     franchise_href = re.sub(r'[0-9]{4}.html', '', href)
     franchise_soup = page_obj.get(franchise_href, False)
@@ -142,7 +142,7 @@ def get_team_info(page_obj, href, ranking, id_cache_dict):
     try:
         coach_id = id_cache_dict[info.coach_href()]
     except:
-        tmp = get_coach_info(page_obj, ino.coach_href(), id_cache_dict)
+        tmp = get_coach_info(page_obj, info.coach_href(), id_cache_dict)
         coach_id = tmp['Coach_ID'].item()
         write_to_sql('coach_info', tmp)
 
@@ -152,6 +152,8 @@ def get_team_info(page_obj, href, ranking, id_cache_dict):
 
     if pandas.isna(maximum_team_id):
         maximum_team_id = 0
+
+    ranking = rank_obj[info.name()]
 
     output = pandas.DataFrame(info.output_row(ranking,
                                               exec_id,
@@ -183,8 +185,7 @@ def get_game_data(page_obj, href, id_cache_dict):
         home_id = id_cache_dict[game.home_team_href()]
     except:
         ranks = rankings(page_obj, game.season())
-        team_rank = ranks[matches['Name']]
-        tmp = get_team_info(page_obj, game.home_team_href(), team_rank, id_cache_dict)
+        tmp = get_team_info(page_obj, game.home_team_href(), ranks, id_cache_dict)
         home_id = tmp['Team_ID'].item()
         write_to_sql('team_info', tmp)
 
@@ -193,8 +194,7 @@ def get_game_data(page_obj, href, id_cache_dict):
         away_id = id_cache_dict[game.away_team_href()]
     except:
         ranks = rankings(page_obj, game.season())
-        team_rank = ranks[matches['Name']]
-        tmp = get_team_info(page_obj, game.away_team_href(), team_rank, id_cache_dict)
+        tmp = get_team_info(page_obj, game.away_team_href(), ranks, id_cache_dict)
         away_id = tmp['Team_ID'].item()
         write_to_sql('team_info', tmp)
 
@@ -245,17 +245,16 @@ def get_season_info(page_obj, href, id_cache_dict):
         champ_id = id_cache_dict[info.champion_href()]
     except:
         ranks = rankings(page_obj, info.season())
-        team_rank = ranks[matches['Name']]
-        tmp = get_team_info(page_obj, matches['href'], team_rank, id_cache_dict)
+        tmp = get_team_info(page_obj, info.champion_href(), ranks, id_cache_dict)
         champ_id = tmp['Team_ID'].item()
         write_to_sql('team_info', tmp)
 
     # finals_mvp
     playoffs_soup = page_obj.get('/playoffs/NBA_' + str(info.season()) + '.html', False)
     try:
-        finals_mvp = id_cache_dict[info.finals_mvp_href(playofs_soup)]
+        finals_mvp = id_cache_dict[info.finals_mvp_href(playoffs_soup)]
     except:
-        tmp = get_player_info(page_obj, info.finals_mvp_href(playofs_soup), id_cache_dict)
+        tmp = get_player_info(page_obj, info.finals_mvp_href(playoffs_soup), id_cache_dict)
         finals_mvp = tmp['Player_ID'].item()
         write_to_sql('player_info', tmp)
 

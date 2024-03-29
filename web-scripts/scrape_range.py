@@ -31,7 +31,7 @@ for i in seasons:
     month_hrefs = get_month_page_hrefs(page, i)
 
     for j in month_hrefs:
-        soup = page.get(j)
+        soup = page.get(j, id_cache)
         game_hrefs = [x.attrs['href'] for x in soup.select('.center a')]
 
         for k in game_hrefs:
