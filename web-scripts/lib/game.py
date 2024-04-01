@@ -20,6 +20,7 @@ class game_info:
         self.Attendance = 0
         self.Duration = 0
         self.Injured = []
+        self.Injured_dict = {}
 
         self.tmp_columns = ['Name', 'MP', 'FG', 'FGA', 'FGp', '3P', '3PA',
                             '3Pp', 'FT', 'FTA', 'FTp', 'ORB', 'DRB', 'TRB',
