@@ -9,7 +9,6 @@ from lib.game import game_data
 from lib.team import team_info
 from lib.player import player_info
 from lib.other_info import referee_info, executive_info, coach_info
-from lib.matching import *
 
 base_url = 'https://www.basketball-reference.com'
 db_name = '../bball_db'
@@ -49,6 +48,15 @@ def should_we_write(table_name, data_frame):
             return False
 
     if table_name == 'game_info':
+        cols = ['Home_Team_Name', 'Away_Team_Name', 'Date']
+        tmp = retrieve_from_sql(table_name)
+        merge = tmp.merge(data_frame, 'outer', on = cols, indicator = True)
+        if len(merge[merge['_merge'] == 'both']) == 0:
+            return True
+        else:
+            return False
+
+    if table_name == 'playoff_game_info':
         cols = ['Home_Team_Name', 'Away_Team_Name', 'Date']
         tmp = retrieve_from_sql(table_name)
         merge = tmp.merge(data_frame, 'outer', on = cols, indicator = True)
@@ -175,6 +183,7 @@ def find_remaining_players(page_obj, id_cache_dict, row_dicts):
     for row in row_dicts:
         info = get_player_info(page_obj, row['href'], id_cache_dict)
         output.update({row['href']: info['Player_ID'].item()})
+        write_to_sql('player_info', info)
 
     return output
 
