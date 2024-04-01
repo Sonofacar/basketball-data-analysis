@@ -43,6 +43,14 @@ for i in seasons:
 
             result = game.get_data()
 
+            # Match players
+            game.apply_matches(id_cache)
+            remaining = game.players_to_match()
+
+            if len(remaining) > 0:
+                matches = find_remaining_players(page, id_cache, remaining)
+                game.apply_matches(matches)
+
             if game.playoffs():
                 write_to_sql('playoff_game_info', pandas.DataFrame(game.output_row()))
                 write_to_sql('player_games_playoffs', game.player_data())

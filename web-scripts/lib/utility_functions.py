@@ -169,6 +169,15 @@ def rankings(page_obj, season):
     ranks = {x.find(attrs = {'data-stat': 'team_name'}).text: int(x.find('th').text) for x in newsoup.find_all('tr')[2:32]}
     return ranks
 
+def find_remaining_players(page_obj, id_cache_dict, row_dicts):
+    output = {}
+
+    for row in row_dicts:
+        info = get_player_info(page_obj, row['href'], id_cache_dict)
+        output.update({row['href']: info['Player_ID'].item()})
+
+    return output
+
 def get_game_data(page_obj, href, id_cache_dict):
     soup = page_obj.get(href, False)
 

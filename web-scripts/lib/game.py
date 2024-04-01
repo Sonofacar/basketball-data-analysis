@@ -356,10 +356,15 @@ class game_data(game_info):
         self.total_game.loc[self.total_game['href'].isna(), 'href'] = self.total_game.loc[self.total_game['href'].isna(), 'Name'].map(self.Injured_dict)
         self.quarters.loc[self.quarters['href'].isna(), 'href'] = self.quarters.loc[self.quarters['href'].isna(), 'Name'].map(self.Injured_dict)
 
+    def players_to_match(self):
+        Teams = [self.Home_Team_Name, self.Away_Team_Name]
+        tmp_table = self.total_game[~self.total_game.Name.str.contains('|'.join(Teams))]
+        return tmp_table[['Name', 'href']].to_dict('records')
+
     def apply_matches(self, matches):
-        tmp = self.total_game.loc[self.total_game['Player_ID'] == 0, 'Player_ID'].map(matches)
+        tmp = self.total_game.loc[self.total_game['Player_ID'] == 0, 'href'].map(matches)
         self.total_game.loc[self.total_game['Player_ID'] == 0, 'Player_ID'] = tmp
-        tmp = self.quarters.loc[self.quarters['Player_ID'] == 0, 'Player_ID'].map(matches)
+        tmp = self.quarters.loc[self.quarters['Player_ID'] == 0, 'href'].map(matches)
         self.quarters.loc[self.quarters['Player_ID'] == 0, 'Player_ID'] = tmp
 
     def player_data(self):
