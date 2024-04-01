@@ -4,10 +4,12 @@ from bs4 import BeautifulSoup
 
 class page:
 
+    def __init__(self, cache_size):
+        self.cache_size = cache_size
+
     base_url = 'https://basketball-reference.com'
     last_time = 0
     wait_time = 4
-    cache_size = 1000
     cache = {}
 
     user_agents = ["Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.3.1 Safari/605.1.1",

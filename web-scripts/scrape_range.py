@@ -10,7 +10,8 @@ from lib.utility_functions import *
 
 
 # Other Variables
-page = lib.get_page.page()
+cache_size = 1000
+page = lib.get_page.page(cache_size)
 id_cache = {}
 
 

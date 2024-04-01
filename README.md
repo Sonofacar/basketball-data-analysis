@@ -16,6 +16,12 @@ python3 scrape-range.py 2000 2023
 ```
 Be warned,
 this will take a *long* time as it will wait for 3 seconds between each request to Basketball-Reference.
+It is also important to note that the script caches certain web pages to reduce the number of requests,
+but this comes at the cost of large use of memory.
+Currently,
+this should take about 5GB of memory by caching 1000 pages at its peak,
+but that is merely a rough calculation.
+This number could be adjusted by the user.
 
 The other is still in progress but will run similarly to get the data for a single day.
 
