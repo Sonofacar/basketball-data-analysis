@@ -394,7 +394,8 @@ class game_data(game_info):
                   'Player_ID': tmp_table['Player_ID'],
                   'Game_ID': tmp_table['Game_ID'],
                   'Season': tmp_table['Season'],
-                  'Team_ID': tmp_table['Team_ID']}
+                  'Team_ID': tmp_table['Team_ID'],
+                  'Opponent_ID': tmp_table['Opponent_ID']}
         return pandas.DataFrame(output)
 
     def player_data_quarter(self):
@@ -425,7 +426,8 @@ class game_data(game_info):
                   'Player_ID': tmp_table['Player_ID'],
                   'Game_ID': tmp_table['Game_ID'],
                   'Season': tmp_table['Season'],
-                  'Team_ID': tmp_table['Team_ID']}
+                  'Team_ID': tmp_table['Team_ID'],
+                  'Opponent_ID': tmp_table['Opponent_ID']}
         return pandas.DataFrame(output)
 
     def team_data(self):
