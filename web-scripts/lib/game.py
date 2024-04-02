@@ -233,6 +233,7 @@ class game_data(game_info):
         new_table = new_table.fillna(0)
         new_table = new_table.replace('Did Not Play', 0)
         new_table = new_table.replace('Did Not Dress', 0)
+        new_table = new_table.replace('Not With Team', 0)
         new_table = new_table.replace('Player Suspended', 0)
         return new_table
 
