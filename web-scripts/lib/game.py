@@ -363,9 +363,9 @@ class game_data(game_info):
         return tmp_table[['Name', 'href']].to_dict('records')
 
     def apply_matches(self, matches):
-        tmp = self.total_game.loc[self.total_game['Player_ID'] == 0, 'href'].map(matches)
+        tmp = self.total_game.loc[self.total_game['Player_ID'] == 0,:]['href'].map(matches).fillna(0)
         self.total_game.loc[self.total_game['Player_ID'] == 0, 'Player_ID'] = tmp
-        tmp = self.quarters.loc[self.quarters['Player_ID'] == 0, 'href'].map(matches)
+        tmp = self.quarters.loc[self.quarters['Player_ID'] == 0,:]['href'].map(matches).fillna(0)
         self.quarters.loc[self.quarters['Player_ID'] == 0, 'Player_ID'] = tmp
 
     def player_data(self):
