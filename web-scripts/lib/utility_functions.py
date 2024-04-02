@@ -19,7 +19,7 @@ def log_dec(Type):
 
         def wrapper(*args, **kwargs):
             try:
-                return function
+                return function(*args, **kwargs)
             except:
                 print('Error: with ' + Type + ' page at ' + kwargs['href'])
                 with open('../error_log.csv', 'a') as file:
