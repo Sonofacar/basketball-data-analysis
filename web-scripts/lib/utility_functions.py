@@ -135,6 +135,10 @@ def get_team_info(page_obj, href, rank_obj, id_cache_dict):
     soup = page_obj.get(href, True)
     franchise_href = re.sub(r'[0-9]{4}.html', '', href)
     franchise_soup = page_obj.get(franchise_href, False)
+
+    if franchise_soup.find('body').text.strip() == '':
+        franchise_href = franchise_soup.find('script').text.strip().split('"')[1]
+        franchise_soup = page_obj.get(franchise_href, False)
     
     info = team_info(franchise_soup, soup, base_url + href)
 
