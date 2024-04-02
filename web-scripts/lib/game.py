@@ -351,6 +351,7 @@ class game_data(game_info):
                 win = int(not win)
                 injured_table = self.injured_table(self.Injured_Home)
                 team_id = self.Home_Team_ID
+                opponent_id = self.Away_Team_ID
 
             status = self.table_iteration(raw_tables[i], injured_table, length, i, home, win, team_id, opponent_id)
 
