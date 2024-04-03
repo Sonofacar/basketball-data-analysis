@@ -7,7 +7,7 @@ class player_info:
         self.hand_dict = {'Left': 'L', 'Right': 'R'}
 
     def header(self):
-        self.Shoots = ''
+        self.Shoots = 'R'
         self.Birthday = ''
         self.Draft_position = 0
         self.Draft_team = ''
@@ -57,7 +57,7 @@ class player_info:
 
     def shoots(self):
         if not hasattr(self, 'Shoots'):
-            self.Shoots = ''
+            self.Shoots = 'R'
         return self.Shoots
 
     def birthday(self):
