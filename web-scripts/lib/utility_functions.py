@@ -80,6 +80,15 @@ def should_we_write(table_name, data_frame):
         else:
             return False
 
+    if table_name == 'team_info':
+        cols = ['Name', 'Season']
+        tmp = retrieve_from_sql(table_name)
+        merge = tmp.merge(data_frame, 'outer', on cols, indicator = True)
+        if len(merge[merge['_merge'] == 'both']) == 0:
+            return True
+        else:
+            return False
+
     return True
 
 @log_dec('player')
@@ -231,7 +240,8 @@ def get_game_data(page_obj, href, id_cache_dict):
         ranks = rankings(page_obj, game.season())
         tmp = get_team_info(page_obj, game.home_team_href(), ranks, id_cache_dict)
         home_id = tmp['Team_ID'].item()
-        write_to_sql('team_info', tmp)
+        if should_we_write('team_info', tmp):
+            write_to_sql('team_info', tmp)
 
     # away_team_id
     try:
@@ -240,7 +250,8 @@ def get_game_data(page_obj, href, id_cache_dict):
         ranks = rankings(page_obj, game.season())
         tmp = get_team_info(page_obj, game.away_team_href(), ranks, id_cache_dict)
         away_id = tmp['Team_ID'].item()
-        write_to_sql('team_info', tmp)
+        if should_we_write('team_info', tmp):
+            write_to_sql('team_info', tmp)
 
     # referee_ids
     ref_ids = []
@@ -295,7 +306,8 @@ def get_season_info(page_obj, href, id_cache_dict):
         ranks = rankings(page_obj, info.season())
         tmp = get_team_info(page_obj, info.champion_href(), ranks, id_cache_dict)
         champ_id = tmp['Team_ID'].item()
-        write_to_sql('team_info', tmp)
+        if should_we_write('team_info', tmp):
+            write_to_sql('team_info', tmp)
 
     # finals_mvp
     playoffs_soup = page_obj.get('/playoffs/NBA_' + str(info.season()) + '.html', False)
