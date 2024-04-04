@@ -253,7 +253,10 @@ def get_game_data(page_obj, href, id_cache_dict):
             write_to_sql('referee_info', tmp)
 
     # prev
-    db = retrieve_from_sql('game_info')
+    if game.playoffs()
+        db = retrieve_from_sql('playoff_game_info')
+    else:
+        db = retrieve_from_sql('game_info')
 
     if len(db) == 0:
         maximum_id = 0
