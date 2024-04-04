@@ -196,7 +196,7 @@ def get_team_info(page_obj, href, rank_obj, id_cache_dict):
 @log_dec('ranking')
 def rankings(page_obj, season):
     href = '/leagues/NBA_' + str(season) + '_standings.html'
-    soup = page_obj.get(href, False)
+    soup = page_obj.get(href, True)
     comment = [x for x in soup.find_all(string=lambda t: isinstance(t, Comment)) if 'expanded_standings' in x][0]
     newsoup = BeautifulSoup(comment, features="lxml")
     ranks = {x.find(attrs = {'data-stat': 'team_name'}).text: int(x.find('th').text) for x in newsoup.find_all('tr')[2:32]}
