@@ -8,7 +8,10 @@ class referee_info:
         return self.Name
 
     def number(self):
-        self.Number = self.soup.find('text').text
+        try:
+            self.Number = int(self.soup.find('text').text)
+        except:
+            sel.Number = 0
         return self.Number
 
     def birthday(self):
