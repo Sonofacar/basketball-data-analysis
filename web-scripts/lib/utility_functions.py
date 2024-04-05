@@ -55,8 +55,13 @@ def retrieve_from_sql(table_name):
     return df
 
 def should_we_write(table_name, data_frame):
+    tmp = retrieve_from_sql(table_name)
+    print('DB info:')
+    tmp.info()
+    print('New info:')
+    data_frame.info()
+
     if table_name == 'seasons':
-        tmp = retrieve_from_sql(table_name)
         if len(tmp.loc[tmp['Season'] == data_frame['Season'].item()]) == 0:
             return True
         else:
@@ -64,7 +69,6 @@ def should_we_write(table_name, data_frame):
 
     if table_name == 'game_info':
         cols = ['Home_Team_Name', 'Away_Team_Name', 'Date']
-        tmp = retrieve_from_sql(table_name)
         merge = tmp.merge(data_frame, 'outer', on = cols, indicator = True)
         if len(merge[merge['_merge'] == 'both']) == 0:
             return True
@@ -73,7 +77,6 @@ def should_we_write(table_name, data_frame):
 
     if table_name == 'playoff_game_info':
         cols = ['Home_Team_Name', 'Away_Team_Name', 'Date']
-        tmp = retrieve_from_sql(table_name)
         merge = tmp.merge(data_frame, 'outer', on = cols, indicator = True)
         if len(merge[merge['_merge'] == 'both']) == 0:
             return True
@@ -82,8 +85,7 @@ def should_we_write(table_name, data_frame):
 
     if table_name == 'team_info':
         cols = ['Name', 'Season']
-        tmp = retrieve_from_sql(table_name)
-        merge = tmp.merge(data_frame, 'outer', on cols, indicator = True)
+        merge = tmp.merge(data_frame, 'outer', on = cols, indicator = True)
         if len(merge[merge['_merge'] == 'both']) == 0:
             return True
         else:
@@ -203,8 +205,7 @@ def get_team_info(page_obj, href, rank_obj, id_cache_dict):
     return output
 
 @log_dec('ranking')
-def rankings(page_obj, season):
-    href = '/leagues/NBA_' + str(season) + '_standings.html'
+def rankings(page_obj, href):
     soup = page_obj.get(href, True)
     comment = [x for x in soup.find_all(string=lambda t: isinstance(t, Comment)) if 'expanded_standings' in x][0]
     newsoup = BeautifulSoup(comment, features="lxml")
@@ -237,7 +238,7 @@ def get_game_data(page_obj, href, id_cache_dict):
     try:
         home_id = id_cache_dict[game.home_team_href()]
     except:
-        ranks = rankings(page_obj, game.season())
+        ranks = rankings(page_obj, '/leagues/NBA_' + str(game.season()) + '_standings.html')
         tmp = get_team_info(page_obj, game.home_team_href(), ranks, id_cache_dict)
         home_id = tmp['Team_ID'].item()
         if should_we_write('team_info', tmp):
@@ -247,7 +248,7 @@ def get_game_data(page_obj, href, id_cache_dict):
     try:
         away_id = id_cache_dict[game.away_team_href()]
     except:
-        ranks = rankings(page_obj, game.season())
+        ranks = rankings(page_obj, '/leagues/NBA_' + str(game.season()) + '_standings.html')
         tmp = get_team_info(page_obj, game.away_team_href(), ranks, id_cache_dict)
         away_id = tmp['Team_ID'].item()
         if should_we_write('team_info', tmp):
@@ -264,7 +265,7 @@ def get_game_data(page_obj, href, id_cache_dict):
             write_to_sql('referee_info', tmp)
 
     # prev
-    if game.playoffs()
+    if game.playoffs():
         db = retrieve_from_sql('playoff_game_info')
     else:
         db = retrieve_from_sql('game_info')
@@ -303,7 +304,7 @@ def get_season_info(page_obj, href, id_cache_dict):
     try:
         champ_id = id_cache_dict[info.champion_href()]
     except:
-        ranks = rankings(page_obj, info.season())
+        ranks = rankings(page_obj, '/leagues/NBA_' + str(info.season()) + '_standings.html')
         tmp = get_team_info(page_obj, info.champion_href(), ranks, id_cache_dict)
         champ_id = tmp['Team_ID'].item()
         if should_we_write('team_info', tmp):

@@ -66,7 +66,7 @@ class team_info:
         return self.Team_ID
 
     def season(self):
-        self.Season = self.url.split('/')[5].replace('.html', '')
+        self.Season = int(self.url.split('/')[5].replace('.html', ''))
         return self.Season
 
     def executive_href(self):
