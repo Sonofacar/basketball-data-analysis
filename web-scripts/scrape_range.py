@@ -39,7 +39,7 @@ for i in seasons:
             game = get_game_data(page, k, id_cache)
             game_info = pandas.DataFrame(game.output_row())
 
-            if (not should_we_write('game_info', game_info)) or (not should_we_write('playoffs_game_info', game_info)):
+            if (not should_we_write('game_info', game_info)) or (not should_we_write('playoff_game_info', game_info)):
                 continue
 
             result = game.get_data()
