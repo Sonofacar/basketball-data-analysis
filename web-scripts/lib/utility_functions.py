@@ -56,10 +56,6 @@ def retrieve_from_sql(table_name):
 
 def should_we_write(table_name, data_frame):
     tmp = retrieve_from_sql(table_name)
-    print('DB info:')
-    tmp.info()
-    print('New info:')
-    data_frame.info()
 
     if table_name == 'seasons':
         if len(tmp.loc[tmp['Season'] == data_frame['Season'].item()]) == 0:
