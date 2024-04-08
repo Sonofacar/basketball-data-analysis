@@ -13,6 +13,11 @@ from lib.other_info import referee_info, executive_info, coach_info
 base_url = 'https://www.basketball-reference.com'
 db_name = '../bball_db'
 
+def error(href):
+    print('Error: with ' + Type + ' page at ' + kwargs['href'])
+    with open('../error_log.csv', 'a') as file:
+        file.write(Type + ',' + kwargs['href'])
+
 def log_dec(Type):
 
     def decorator(function):
@@ -21,9 +26,10 @@ def log_dec(Type):
             try:
                 return function(*args, **kwargs)
             except:
-                print('Error: with ' + Type + ' page at ' + kwargs['href'])
-                with open('../error_log.csv', 'a') as file:
-                    file.write(Type + ',' + kwargs['href'])
+                if len(args) == 0:
+                    error(kwargs['href']
+                else:
+                    error(args[1])
         return wrapper
 
     return decorator
