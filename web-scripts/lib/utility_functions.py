@@ -14,9 +14,9 @@ base_url = 'https://www.basketball-reference.com'
 db_name = '../bball_db'
 
 def error(href, Type):
-    print('Error: with ' + Type + ' page at ' + kwargs['href'])
+    print('Error: with ' + Type + ' page at ' + href)
     with open('../error_log.csv', 'a') as file:
-        file.write(Type + ',' + kwargs['href'])
+        file.write(Type + ',' + href + '\n')
 
 def log_dec():
 
