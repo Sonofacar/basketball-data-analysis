@@ -106,7 +106,7 @@ def get_player_info(page_obj, href, id_cache_dict):
     else:
         maximum_id = db['Player_ID'].max()
 
-    id_cache_dict.update({href: maximum_id})
+    id_cache_dict.update({href: maximum_id + 1})
 
     info = player_info(soup)
     output = pandas.DataFrame(info.output_row(maximum_id))
@@ -123,7 +123,7 @@ def get_coach_info(page_obj, href, id_cache_dict):
     else:
         maximum_id = db['Coach_ID'].max()
 
-    id_cache_dict.update({href: maximum_id})
+    id_cache_dict.update({href: maximum_id + 1})
 
     info = coach_info(soup)
     output = pandas.DataFrame(info.output_row(maximum_id))
@@ -140,7 +140,7 @@ def get_executive_info(page_obj, href, id_cache_dict):
     else:
         maximum_id = db['Executive_ID'].max()
 
-    id_cache_dict.update({href: maximum_id})
+    id_cache_dict.update({href: maximum_id + 1})
 
     info = executive_info(soup)
     output = pandas.DataFrame(info.output_row(maximum_id))
@@ -157,7 +157,7 @@ def get_referee_info(page_obj, href, id_cache_dict):
     else:
         maximum_id = db['Referee_ID'].max()
 
-    id_cache_dict.update({href: maximum_id})
+    id_cache_dict.update({href: maximum_id + 1})
 
     info = referee_info(soup)
     output = pandas.DataFrame(info.output_row(maximum_id))
