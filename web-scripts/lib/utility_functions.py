@@ -27,7 +27,7 @@ def log_dec(Type):
                 return function(*args, **kwargs)
             except:
                 if len(args) == 0:
-                    error(kwargs['href']
+                    error(kwargs['href'])
                 else:
                     error(args[1])
         return wrapper
