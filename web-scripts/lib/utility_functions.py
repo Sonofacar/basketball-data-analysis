@@ -18,7 +18,7 @@ def error(href, Type):
     with open('../error_log.csv', 'a') as file:
         file.write(Type + ',' + kwargs['href'])
 
-def log_dec(Type):
+def log_dec():
 
     def decorator(function):
 
@@ -27,9 +27,9 @@ def log_dec(Type):
                 return function(*args, **kwargs)
             except:
                 if len(args) == 0:
-                    error(kwargs['href'], Type)
+                    error(kwargs['href'], function.__name__)
                 else:
-                    error(args[1], Type)
+                    error(args[1], function.__name__)
         return wrapper
 
     return decorator
@@ -95,7 +95,7 @@ def should_we_write(table_name, data_frame):
 
     return True
 
-@log_dec('player')
+@log_dec()
 def get_player_info(page_obj, href, id_cache_dict):
     soup = page_obj.get(href, True)
 
@@ -112,7 +112,7 @@ def get_player_info(page_obj, href, id_cache_dict):
     output = pandas.DataFrame(info.output_row(maximum_id))
     return output
 
-@log_dec('coach')
+@log_dec()
 def get_coach_info(page_obj, href, id_cache_dict):
     soup = page_obj.get(href, True)
 
@@ -129,7 +129,7 @@ def get_coach_info(page_obj, href, id_cache_dict):
     output = pandas.DataFrame(info.output_row(maximum_id))
     return output
 
-@log_dec('executive')
+@log_dec()
 def get_executive_info(page_obj, href, id_cache_dict):
     soup = page_obj.get(href, True)
 
@@ -146,7 +146,7 @@ def get_executive_info(page_obj, href, id_cache_dict):
     output = pandas.DataFrame(info.output_row(maximum_id))
     return output
 
-@log_dec('referee')
+@log_dec()
 def get_referee_info(page_obj, href, id_cache_dict):
     soup = page_obj.get(href, True)
 
@@ -163,7 +163,7 @@ def get_referee_info(page_obj, href, id_cache_dict):
     output = pandas.DataFrame(info.output_row(maximum_id))
     return output
 
-@log_dec('team')
+@log_dec()
 def get_team_info(page_obj, href, rank_obj, id_cache_dict):
     soup = page_obj.get(href, True)
     franchise_href = re.sub(r'[0-9]{4}.html', '', href)
@@ -206,7 +206,7 @@ def get_team_info(page_obj, href, rank_obj, id_cache_dict):
                                               maximum_team_id))
     return output
 
-@log_dec('ranking')
+@log_dec()
 def rankings(page_obj, href):
     soup = page_obj.get(href, True)
     comment = [x for x in soup.find_all(string=lambda t: isinstance(t, Comment)) if 'expanded_standings' in x][0]
@@ -224,7 +224,7 @@ def find_remaining_players(page_obj, id_cache_dict, row_dicts):
 
     return output
 
-@log_dec('game_data')
+@log_dec()
 def get_game_data(page_obj, href, id_cache_dict):
     soup = page_obj.get(href, False)
 
@@ -284,7 +284,7 @@ def get_game_data(page_obj, href, id_cache_dict):
 
     return game
 
-@log_dec('season')
+@log_dec()
 def get_season_info(page_obj, href, id_cache_dict):
     soup = page_obj.get(href, False)
 
