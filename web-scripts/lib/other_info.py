@@ -11,7 +11,7 @@ class referee_info:
         try:
             self.Number = int(self.soup.find('text').text)
         except:
-            sel.Number = 0
+            self.Number = 0
         return self.Number
 
     def birthday(self):
@@ -31,9 +31,9 @@ class referee_info:
     def output_row(self, prev):
         self.generate_referee_id(prev)
         self.row = {'Name': [self.name()],
-                  'Number': [self.number()],
-                  'Birthday': [self.birthday()],
-                  'Referee_ID': [self.referee_id()]}
+                    'Number': [self.number()],
+                    'Birthday': [self.birthday()],
+                    'Referee_ID': [self.referee_id()]}
         return self.row
 
 class executive_info:
