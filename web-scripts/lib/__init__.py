@@ -138,11 +138,11 @@ def get_referee_info(page_obj, href, id_cache_dict):
 def get_team_info(page_obj, href, rank_obj, id_cache_dict):
     soup = page_obj.get(href, True)
     franchise_href = re.sub(r'[0-9]{4}.html', '', href)
-    franchise_soup = page_obj.get(franchise_href, False)
+    franchise_soup = page_obj.get(franchise_href, True)
 
     if franchise_soup.find('body').text.strip() == '':
         franchise_href = franchise_soup.find('script').text.strip().split('"')[1]
-        franchise_soup = page_obj.get(franchise_href, False)
+        franchise_soup = page_obj.get(franchise_href, True)
     
     info = team_info(franchise_soup, soup, base_url + href)
 
@@ -263,14 +263,7 @@ def get_season_info(page_obj, href, id_cache_dict):
     info.header()
     info.awards()
 
-    print()
-    print()
-    print('##############')
-    print('##############')
-    print('#### ' + str(info.season()) + ' ####')
-    print('##############')
-    print('##############')
-    print()
+    debug.debug('New Season', '!!!!!!! ' + str(info.season()) + ' !!!!!!!')
 
     # champion
     try:
