@@ -1,6 +1,38 @@
-import debug
+class debug:
 
-class referee_info:
+    def debug(self, title, message):
+        print('[ ' + title + ' ]: ' + message)
+
+    def debug_error(self, soup, location, field, return_type, info = ''):
+        if not isinstance(return_type, type):
+            raise TypeError
+
+        output = 0
+        url = soup.find('link', {'rel': 'canonical'}).attrs['href']
+        href = url.replace('https://www.basketball-reference.com', '')
+        print('[ Error: ' + location + ' ]: Could not fill the ' + field + ' field.')
+        print("\tHREF: " + href)
+        if info != '':
+            print("\tCONTEXT: " + info)
+
+        if return_type == int:
+            output = 0
+        elif return_type == str:
+            output = ''
+
+        return output
+
+    def error_wrap(location = '', field = '', return_type = '', info = ''):
+        def decorator(function):
+            def wrapper(self, *args, **kwargs):
+                try:
+                    return function(self, *args, **kwargs)
+                except:
+                    return self.debug_error(self.soup, location, field, return_type, info)
+            return wrapper
+        return decorator
+
+class referee_info(debug):
 
     def __init__(self, soup):
         self.soup = soup
@@ -12,21 +44,14 @@ class referee_info:
 
     @debug.error_wrap('referee_info', 'number', int)
     def number(self):
-        try:
-            self.Number = int(self.soup.find('text').text)
-        except:
-            self.Number = 0
+        self.Number = int(self.soup.find('text').text)
         return self.Number
 
     @debug.error_wrap('referee_info', 'birthday', str)
     def birthday(self):
-        try:
-            birthday_raw = [x.text for x in self.soup.select('#meta p') if 'Born:' in x.text][0]
-        except:
-            self.Birthday = ''
-        else:
-            birthday_raw = birthday_raw.replace('Born: ', '').split(' in ')[0]
-            self.Birthday = birthday_raw.replace('Born:\n', '').replace('\n', '').replace('   ', '')
+        birthday_raw = [x.text for x in self.soup.select('#meta p') if 'Born:' in x.text][0]
+        birthday_raw = birthday_raw.replace('Born: ', '').split(' in ')[0]
+        self.Birthday = birthday_raw.replace('Born:\n', '').replace('\n', '').replace('   ', '')
         return self.Birthday
 
     def generate_referee_id(self, prev):
@@ -45,7 +70,7 @@ class referee_info:
                     'Referee_ID': [self.referee_id()]}
         return self.row
 
-class executive_info:
+class executive_info(debug):
 
     def __init__(self, soup):
         self.soup = soup
@@ -57,13 +82,9 @@ class executive_info:
 
     @debug.error_wrap('executive_info', 'birthday', str)
     def birthday(self):
-        try:
-            birthday_raw = [x.text for x in self.soup.select('#meta p') if 'Born:' in x.text][0]
-        except:
-            self.Birthday = ''
-        else:
-            birthday_raw = birthday_raw.replace('Born: ', '').split(' in ')[0]
-            self.Birthday = birthday_raw.replace('Born:\n', '').replace('\n', '').replace('   ', '')
+        birthday_raw = [x.text for x in self.soup.select('#meta p') if 'Born:' in x.text][0]
+        birthday_raw = birthday_raw.replace('Born: ', '').split(' in ')[0]
+        self.Birthday = birthday_raw.replace('Born:\n', '').replace('\n', '').replace('   ', '')
         return self.Birthday
 
     @debug.error_wrap('executive_info', 'teams', str)
@@ -88,7 +109,7 @@ class executive_info:
                     'Executive_ID': [self.executive_id()]}
         return self.row
 
-class coach_info:
+class coach_info(debug):
 
     def __init__(self, soup):
         self.soup = soup
@@ -100,10 +121,9 @@ class coach_info:
 
     @debug.error_wrap('coach_info', 'birthday', str)
     def birthday(self):
-        try:
-            self.Birthday = [x.text for x in self.soup.select('#meta p') if 'Born:' in x.text][0].replace('Born: ', '').split(' in ')[0].replace('Born:\n', '').replace('\n', '').replace('   ', '')
-        except:
-            self.Birthday = ''
+        birthday_raw = [x.text for x in self.soup.select('#meta p') if 'Born:' in x.text][0]
+        birthday_raw = birthday_raw.replace('Born: ', '').split(' in ')[0]
+        self.Birthday = birthday_raw.replace('Born:\n', '').replace('\n', '').replace('   ', '')
         return self.Birthday
 
     @debug.error_wrap('coach_info', 'wins', int)
