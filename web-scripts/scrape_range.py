@@ -64,3 +64,4 @@ for i in seasons:
                 lib.write_to_sql('player_quarters', game.player_data_quarter())
                 lib.write_to_sql('team_games', game.team_data())
                 lib.write_to_sql('team_quarters', game.team_data_quarter())
+

@@ -27,6 +27,7 @@ def get_game_hrefs(soup):
 def write_to_sql(table_name, data_frame):
     conn = sqlite3.Connection(db_name)
     print('Writing: ' + table_name)
+    debug.debug('Writing', 'to ' + table_name)
     data_frame.to_sql(name = table_name, con = conn, if_exists = 'append', index = False)
     conn.close()
 
@@ -201,11 +202,7 @@ def get_game_data(page_obj, href, id_cache_dict):
 
     game = game_data(soup)
 
-    print()
-    print('############')
-    print('# New Game #')
-    print('############')
-    print()
+    debug.debug('New Game', href)
 
     # home_team_id
     try:
