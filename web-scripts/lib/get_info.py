@@ -1,5 +1,6 @@
 import pandas
 import re
+from bs4 import Comment
 
 pandas.options.mode.copy_on_write = True
 
