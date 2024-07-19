@@ -1,6 +1,6 @@
 import pandas
 import re
-from bs4 import Comment
+from bs4 import BeautifulSoup, Comment
 
 pandas.options.mode.copy_on_write = True
 
