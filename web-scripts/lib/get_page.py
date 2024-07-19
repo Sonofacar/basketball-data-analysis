@@ -1,7 +1,7 @@
 import time
 import requests
 from bs4 import BeautifulSoup
-from get_info.debug import debug, debug_error
+from lib.get_info import debug
 
 class page:
 
@@ -65,7 +65,7 @@ class page:
             status, soup = self.check_cache(href)
         
         if cache and status:
-            debug('Request', 'from cache: ' + href)
+            debug.debug('Request', 'from cache: ' + href)
             return soup
 
         headers = {'User-Agent': self.user_agents[self.agent_index],
@@ -95,10 +95,10 @@ class page:
         soup = BeautifulSoup(page.text, features="lxml")
         self.last_time = time.time()
         time_string = time.strftime('%H:%M:%S', time.localtime(self.last_time))
-        debug('Request', time_string + '  requesting: ' + href)
+        debug.debug('Request', time_string + '  requesting: ' + href)
 
         if page.status_code > 400:
-            debug('Error: Request',
+            debug.debug('Error: Request',
                   'Too many requests, will be in jail until an hour after ' + time_string)
             time.sleep(60 ** 2)
             page = requests.get(url)

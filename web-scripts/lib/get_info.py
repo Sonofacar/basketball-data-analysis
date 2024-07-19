@@ -6,7 +6,7 @@ pandas.options.mode.copy_on_write = True
 
 class debug:
 
-    def debug(self, title, message):
+    def debug(title, message):
         print('[ ' + title + ' ]: ' + message)
 
     def debug_error(self, soup, location, field, return_type, info = '', default = None):
@@ -48,7 +48,6 @@ class debug:
             return wrapper
         return decorator
 
-#done
 class referee_info(debug):
 
     def __init__(self, soup):
@@ -87,7 +86,6 @@ class referee_info(debug):
                     'Referee_ID': [self.referee_id()]}
         return self.row
 
-#done
 class executive_info(debug):
 
     def __init__(self, soup):
@@ -127,7 +125,6 @@ class executive_info(debug):
                     'Executive_ID': [self.executive_id()]}
         return self.row
 
-#done
 class coach_info(debug):
 
     def __init__(self, soup):
@@ -179,7 +176,6 @@ class coach_info(debug):
                     'Coach_ID': [self.coach_id()]}
         return self.row
 
-#done
 class player_info(debug):
     
     def __init__(self, soup):
@@ -209,7 +205,7 @@ class player_info(debug):
                 self.Birthday = text.replace('Born: ', '').split('in')[0].replace(',', ', ')
 
             if 'Draft:' in text:
-                parts = re.split('\(|\)', text)
+                parts = re.split(r'\(|\)', text)
                 self.Draft_position = int(re.findall('[0-9]{1,2}', parts[1].split(', ')[1])[0])
                 self.Draft_team = parts[0].replace('  ', '').replace('Draft:', '').split(',')[0]
                 self.Draft_year = int(re.findall('[0-9]{4}', parts[2])[0])
@@ -299,7 +295,6 @@ class player_info(debug):
                     'Player_ID': [self.player_id()]}
         return self.row
 
-#done
 class team_info(debug):
 
     def __init__(self, franchise_soup, soup, url):
@@ -424,7 +419,6 @@ class team_info(debug):
                     'Coach_ID': [self.coach()]}
         return self.row
 
-#done
 class season_info(debug):
 
     def __init__(self, soup):
