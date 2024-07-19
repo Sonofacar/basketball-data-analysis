@@ -26,7 +26,6 @@ def get_game_hrefs(soup):
 
 def write_to_sql(table_name, data_frame):
     conn = sqlite3.Connection(db_name)
-    print('Writing: ' + table_name)
     debug.debug('Writing', 'to ' + table_name)
     data_frame.to_sql(name = table_name, con = conn, if_exists = 'append', index = False)
     conn.close()
