@@ -4,35 +4,11 @@ import pandas
 from bs4 import BeautifulSoup, Comment
 
 # scraping library
-from lib.season import season_info
-from lib.game import game_data
-from lib.team import team_info
-from lib.player import player_info
-from lib.other_info import referee_info, executive_info, coach_info
+from lib.get_info import *
+from lib.get_page import page
 
 base_url = 'https://www.basketball-reference.com'
 db_name = '../bball_db'
-
-def error(href, Type):
-    print('Error: with ' + Type + ' page at ' + href)
-    with open('../error_log.csv', 'a') as file:
-        file.write(Type + ',' + href + '\n')
-
-def log_dec():
-
-    def decorator(function):
-
-        def wrapper(*args, **kwargs):
-            try:
-                return function(*args, **kwargs)
-            except:
-                if len(args) == 0:
-                    error(kwargs['href'], function.__name__)
-                else:
-                    error(args[1], function.__name__)
-        return wrapper
-
-    return decorator
 
 def generate_season_href(season):
     # Going by the end year
@@ -95,7 +71,6 @@ def should_we_write(table_name, data_frame):
 
     return True
 
-@log_dec()
 def get_player_info(page_obj, href, id_cache_dict):
     soup = page_obj.get(href, True)
 
@@ -112,7 +87,6 @@ def get_player_info(page_obj, href, id_cache_dict):
     output = pandas.DataFrame(info.output_row(maximum_id))
     return output
 
-@log_dec()
 def get_coach_info(page_obj, href, id_cache_dict):
     soup = page_obj.get(href, True)
 
@@ -129,7 +103,6 @@ def get_coach_info(page_obj, href, id_cache_dict):
     output = pandas.DataFrame(info.output_row(maximum_id))
     return output
 
-@log_dec()
 def get_executive_info(page_obj, href, id_cache_dict):
     soup = page_obj.get(href, True)
 
@@ -146,7 +119,6 @@ def get_executive_info(page_obj, href, id_cache_dict):
     output = pandas.DataFrame(info.output_row(maximum_id))
     return output
 
-@log_dec()
 def get_referee_info(page_obj, href, id_cache_dict):
     soup = page_obj.get(href, True)
 
@@ -163,7 +135,6 @@ def get_referee_info(page_obj, href, id_cache_dict):
     output = pandas.DataFrame(info.output_row(maximum_id))
     return output
 
-@log_dec()
 def get_team_info(page_obj, href, rank_obj, id_cache_dict):
     soup = page_obj.get(href, True)
     franchise_href = re.sub(r'[0-9]{4}.html', '', href)
@@ -174,6 +145,8 @@ def get_team_info(page_obj, href, rank_obj, id_cache_dict):
         franchise_soup = page_obj.get(franchise_href, False)
     
     info = team_info(franchise_soup, soup, base_url + href)
+
+    info.get_hrefs()
 
     # Executive ID
     try:
@@ -206,7 +179,6 @@ def get_team_info(page_obj, href, rank_obj, id_cache_dict):
                                               maximum_team_id))
     return output
 
-@log_dec()
 def rankings(page_obj, href):
     soup = page_obj.get(href, True)
     comment = [x for x in soup.find_all(string=lambda t: isinstance(t, Comment)) if 'expanded_standings' in x][0]
@@ -224,7 +196,6 @@ def find_remaining_players(page_obj, id_cache_dict, row_dicts):
 
     return output
 
-@log_dec()
 def get_game_data(page_obj, href, id_cache_dict):
     soup = page_obj.get(href, False)
 
@@ -284,7 +255,6 @@ def get_game_data(page_obj, href, id_cache_dict):
 
     return game
 
-@log_dec()
 def get_season_info(page_obj, href, id_cache_dict):
     soup = page_obj.get(href, False)
 
