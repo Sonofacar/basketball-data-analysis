@@ -1,9 +1,12 @@
 # Imports
 import sqlite3
-import sys
+import os
 
 # db.sql name given from command line
 db_name = '../bball_db'
+
+if os.path.isfile(db_name):
+    os.remove(db_name)
 
 conn = sqlite3.connect(db_name)
 cur = conn.cursor()
