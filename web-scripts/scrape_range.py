@@ -23,6 +23,8 @@ for i in seasons:
     # Season Info
     season_href = lib.generate_season_href(i)
     Seasons = lib.get_season_info(page, season_href, id_cache)
+    game_counter = 0
+    total_games = Seasons.Games.iloc[0]
 
     if lib.should_we_write('seasons', Seasons):
         lib.write_to_sql('seasons', Seasons)
@@ -35,7 +37,10 @@ for i in seasons:
         game_hrefs = [x.attrs['href'] for x in soup.select('.center a')]
 
         for k in game_hrefs:
-            game = lib.get_game_data(page, k, id_cache)
+            game_counter += 1
+            game_counter_str = "\t( " + str(game_counter) + ' / ' + str(int(total_games)) + ' + playoffs. )'
+
+            game = lib.get_game_data(page, k, game_counter_str, id_cache)
             game_info = pandas.DataFrame(game.output_row())
 
             if ((not lib.should_we_write('game_info', game_info)) or 

@@ -1,13 +1,14 @@
 import pandas
 import re
 from bs4 import BeautifulSoup, Comment
+from io import StringIO
 
 pandas.options.mode.copy_on_write = True
 
 class debug:
 
     def debug(title, message):
-        print('[ ' + title + ' ]: ' + message)
+        print('[ ' + title + " ]:\t" + message)
 
     def debug_error(self, soup, location, field, return_type, info = '', default = None):
         if not isinstance(return_type, type):
@@ -16,7 +17,7 @@ class debug:
         output = 0
         url = soup.find('link', {'rel': 'canonical'}).attrs['href']
         href = url.replace('https://www.basketball-reference.com', '')
-        print('[ Error: ' + location + ' ]: Could not fill the ' + field + ' field.')
+        print('[ Error: ' + location + " ]:\tCould not fill the " + field + ' field.')
         print("\tHREF: " + href)
         if info != '':
             print("\tCONTEXT: " + info)
@@ -434,7 +435,8 @@ class season_info(debug):
     def awards(self):
         comment = [x for x in self.soup.find_all(string=lambda t: isinstance(t, Comment)) if 'award' in x][0]
         new_soup = BeautifulSoup(comment.replace('\n', ''), features = 'lxml')
-        players = [x for x in new_soup.select('#all_awards a') if x.text != '']
+        all = [x for x in new_soup.select('#all_awards a') if x.text != '']
+        players = [all[i] for i in range(len(all)) if i %2 == 1]
         
         # MVP
         self.mvp_name = players[0].text
@@ -464,7 +466,7 @@ class season_info(debug):
     @debug.error_wrap('season_info', 'games', int)
     def games(self):
         team_totals = [int(x.text) for x in self.soup.select('#per_game-team tbody .left+ .right')]
-        self.Games = sum(team_totals)
+        self.Games = sum(team_totals) / 2
         return self.Games
 
     @debug.error_wrap('season_info', 'teams', int)
@@ -576,6 +578,7 @@ class game_info(debug):
 
     def __init__(self, soup):
         self.soup = soup
+        self.na_vals = ['Did Not Play', 'Did Not Dress', 'Not With Team', 'Player Suspended']
 
         self.teams = self.soup.select('.scorebox strong a')
 
@@ -770,7 +773,9 @@ class game_info(debug):
         return self.Referee_hrefs
 
     def set_referee_ids(self, In):
-        self.Referee_IDs = In
+        self.Referee_IDs = [0] * 3
+        for i in range(len(In)):
+            self.Referee_IDs[i] = In[i]
         return self.Referee_IDs
 
     @debug.error_wrap('game_info', 'referee_ids', list, default = [0, 0, 0], info = 'This field has not been linked yet')
@@ -807,11 +812,15 @@ class game_data(game_info):
     def clean_table(self, table):
         table.columns = self.tmp_columns
         new_table = table.drop(table[table['Name'] == 'Reserves'].index)
-        new_table = new_table.fillna(0)
-        new_table = new_table.replace('Did Not Play', 0)
-        new_table = new_table.replace('Did Not Dress', 0)
-        new_table = new_table.replace('Not With Team', 0)
-        new_table = new_table.replace('Player Suspended', 0)
+        for col in new_table.columns:
+            dtype = new_table[col].dtype
+
+            if ((dtype == int) or
+                (dtype == float) or
+                (dtype == bool)):
+                new_table[col] = new_table[col].fillna(0)
+            else:
+                new_table[col] = new_table[col].fillna('')
         return new_table
 
     def injured_table(self, names):
@@ -844,7 +853,7 @@ class game_data(game_info):
                 Iteration_type = 'Overtime'
 
         tmp_table = pandas.DataFrame(columns = self.tmp_columns)
-        tmp_table = pandas.read_html(str(raw_html))[0]
+        tmp_table = pandas.read_html(StringIO(str(raw_html)), na_values = self.na_vals)[0]
         tmp_table = self.clean_table(tmp_table)
         tmp_table = pandas.concat([tmp_table, injured_table], ignore_index = True)
 
@@ -867,6 +876,7 @@ class game_data(game_info):
         tmp_table['Injured'] = tmp_table.Name.str.contains('|'.join(self.Injured)).astype(int)
 
         hrefs = {x.text: x.attrs['href'] for x in raw_html.find_all('a')}
+        tmp_table['href'] = tmp_table['href'].astype('object')
         tmp_table.loc[tmp_table['href'].isna(), 'href'] = tmp_table.loc[tmp_table['href'].isna(), 'Name'].map(hrefs)
 
         match Iteration_type:

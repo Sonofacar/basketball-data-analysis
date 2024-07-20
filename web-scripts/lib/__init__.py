@@ -167,6 +167,7 @@ def get_team_info(page_obj, href, rank_obj, id_cache_dict):
     # Previous ID
     db = retrieve_from_sql('team_info')
     maximum_team_id = db['Team_ID'].max()
+    id_cache_dict.update({href: maximum_team_id + 1})
 
     if pandas.isna(maximum_team_id):
         maximum_team_id = 0
@@ -196,12 +197,12 @@ def find_remaining_players(page_obj, id_cache_dict, row_dicts):
 
     return output
 
-def get_game_data(page_obj, href, id_cache_dict):
+def get_game_data(page_obj, href, counter, id_cache_dict):
     soup = page_obj.get(href, False)
 
     game = game_data(soup)
 
-    debug.debug('New Game', href)
+    debug.debug('New Game', href + ' ' + counter)
 
     # home_team_id
     try:
