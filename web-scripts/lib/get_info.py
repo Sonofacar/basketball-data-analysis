@@ -579,7 +579,10 @@ class game_info(debug):
 
     def __init__(self, soup):
         self.soup = soup
-        self.na_vals = ['Did Not Play', 'Did Not Dress', 'Not With Team', 'Player Suspended']
+        self.converter = {'Did Not Play': 0,
+                          'Did Not Dress': 0,
+                          'Not With Team': 0,
+                          'Player Suspended': 0}
 
         self.teams = self.soup.select('.scorebox strong a')
 
@@ -863,7 +866,7 @@ class game_data(game_info):
                 Iteration_type = 'Overtime'
 
         tmp_table = pandas.DataFrame(columns = self.tmp_columns)
-        tmp_table = pandas.read_html(StringIO(str(raw_html)), na_values = self.na_vals)[0]
+        tmp_table = pandas.read_html(StringIO(str(raw_html)), converters = self.converter)[0]
         tmp_table = self.clean_table(tmp_table)
         tmp_table = pandas.concat([tmp_table, injured_table], ignore_index = True)
 
