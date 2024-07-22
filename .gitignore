@@ -1,1 +1,4 @@
 *.swp
+*.log
+*.old
+bball_db
