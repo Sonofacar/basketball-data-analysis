@@ -92,6 +92,7 @@ class page:
             time.sleep(sleep_time)
 
         page = requests.get(url)
+        page.encoding = page.apparent_encoding
         soup = BeautifulSoup(page.text, features="lxml")
         self.last_time = time.time()
         time_string = time.strftime('%H:%M:%S', time.localtime(self.last_time))
