@@ -167,11 +167,11 @@ def get_team_info(page_obj, href, rank_obj, id_cache_dict):
     # Previous ID
     db = retrieve_from_sql('team_info')
     maximum_team_id = db['Team_ID'].max()
-    id_cache_dict.update({href: maximum_team_id + 1})
 
     if pandas.isna(maximum_team_id):
         maximum_team_id = 0
 
+    id_cache_dict.update({href: maximum_team_id + 1})
     ranking = rank_obj[info.name()]
 
     output = pandas.DataFrame(info.output_row(ranking,

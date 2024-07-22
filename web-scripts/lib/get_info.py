@@ -11,16 +11,15 @@ class debug:
         print('[ ' + title + " ]:\t" + message)
 
     def debug_error(self, soup, location, field, return_type, info = '', default = None):
-        if not isinstance(return_type, type):
+        if not (isinstance(return_type, type) or return_type == None):
             raise TypeError
 
         output = 0
         url = soup.find('link', {'rel': 'canonical'}).attrs['href']
         href = url.replace('https://www.basketball-reference.com', '')
-        print('[ Error: ' + location + " ]:\tCould not fill the " + field + ' field.')
-        print("\tHREF: " + href)
+        print("[  Error  ]:\t" + location + "(" + field + "): Could not fill the field.\t" + href)
         if info != '':
-            print("\tCONTEXT: " + info)
+            print("\t\tCONTEXT: " + info)
 
         if default != None:
             output = default
@@ -200,7 +199,9 @@ class player_info(debug):
                 break
 
             if 'Shoots:' in text:
-                self.Shoots = self.hand_dict[text.split('Shoots:')[1]]
+                tmp = text.split('Shoots:')[1]
+                if tmp in self.hand_dict.keys():
+                    self.Shoots = self.hand_dict[tmp]
 
             if 'Born:' in text:
                 self.Birthday = text.replace('Born: ', '').split('in')[0].replace(',', ', ')
@@ -804,8 +805,17 @@ class game_data(game_info):
 
     def player_to_seconds(self, series):
         series.loc[series == 0] = '0:0'
-        minutes = [int(str(x).split(':')[0]) for x in list(series)]
-        seconds = [int(str(x).split(':')[1]) for x in list(series)]
+
+        minutes = []
+        seconds = []
+        for item in list(series):
+            try:
+                minutes.append(int(str(item).split(':')[0]))
+                seconds.append(int(str(item).split(':')[1]))
+            except:
+                minutes.append(0)
+                seconds.append(0)
+
         output = [(minutes[i] * 60) + seconds[i] for i in range(len(minutes))]
         return pandas.Series(output, dtype = 'int')
 
@@ -873,7 +883,12 @@ class game_data(game_info):
         tmp_table['Season'] = self.season()
         tmp_table['Team_ID'] = Team_ID
         tmp_table['Opponent_ID'] = Opponent_ID
-        tmp_table['Injured'] = tmp_table.Name.str.contains('|'.join(self.Injured)).astype(int)
+        injured_string = '|'.join(self.Injured)
+
+        if injured_string == '':
+            tmp_table['Injured'] = 0
+        else:
+            tmp_table['Injured'] = tmp_table.Name.str.contains('|'.join(self.Injured)).astype(int)
 
         hrefs = {x.text: x.attrs['href'] for x in raw_html.find_all('a')}
         tmp_table['href'] = tmp_table['href'].astype('object')

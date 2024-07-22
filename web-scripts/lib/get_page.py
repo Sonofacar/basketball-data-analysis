@@ -97,11 +97,19 @@ class page:
         time_string = time.strftime('%H:%M:%S', time.localtime(self.last_time))
         debug.debug('Request', time_string + '  requesting: ' + href)
 
-        if page.status_code > 400:
-            debug.debug('Error: Request',
-                  'Too many requests, will be in jail until an hour after ' + time_string)
-            time.sleep(60 ** 2)
+        # Just try again before we make a decision
+        if not page.ok:
+            time.sleep(20)
             page = requests.get(url)
+
+        # We probably are blocked
+        if page.status_code >= 400:
+            debug.debug('Error: Request',
+                  'Probably too many requests, will be in jail until an hour after ' + time_string + '. Will keep trying intermitently.')
+            while not page.ok:
+                time.sleep(60)
+                page = requests.get(url)
+
             soup = BeautifulSoup(page.text, features="lxml")
 
         if cache:
