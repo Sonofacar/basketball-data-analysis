@@ -26,7 +26,7 @@ def get_game_hrefs(soup):
 
 def write_to_sql(table_name, data_frame):
     conn = sqlite3.Connection(db_name)
-    debug.debug('Writing', 'to ' + table_name)
+    debug.debug(' Writing  ', 'to ' + table_name)
     data_frame.to_sql(name = table_name, con = conn, if_exists = 'append', index = False)
     conn.close()
 
@@ -72,7 +72,7 @@ def should_we_write(table_name, data_frame):
     return True
 
 def get_player_info(page_obj, href, id_cache_dict):
-    soup = page_obj.get(href, True)
+    soup = page_obj.get(href, False)
 
     db = retrieve_from_sql('player_info')
 
@@ -88,7 +88,7 @@ def get_player_info(page_obj, href, id_cache_dict):
     return output
 
 def get_coach_info(page_obj, href, id_cache_dict):
-    soup = page_obj.get(href, True)
+    soup = page_obj.get(href, False)
 
     db = retrieve_from_sql('coach_info')
 
@@ -104,7 +104,7 @@ def get_coach_info(page_obj, href, id_cache_dict):
     return output
 
 def get_executive_info(page_obj, href, id_cache_dict):
-    soup = page_obj.get(href, True)
+    soup = page_obj.get(href, False)
 
     db = retrieve_from_sql('executive_info')
 
@@ -120,7 +120,7 @@ def get_executive_info(page_obj, href, id_cache_dict):
     return output
 
 def get_referee_info(page_obj, href, id_cache_dict):
-    soup = page_obj.get(href, True)
+    soup = page_obj.get(href, False)
 
     db = retrieve_from_sql('referee_info')
 
@@ -136,7 +136,7 @@ def get_referee_info(page_obj, href, id_cache_dict):
     return output
 
 def get_team_info(page_obj, href, rank_obj, id_cache_dict):
-    soup = page_obj.get(href, True)
+    soup = page_obj.get(href, False)
     franchise_href = re.sub(r'[0-9]{4}.html', '', href)
     franchise_soup = page_obj.get(franchise_href, True)
 
@@ -202,7 +202,7 @@ def get_game_data(page_obj, href, counter, id_cache_dict):
 
     game = game_data(soup)
 
-    debug.debug('New Game', href + ' ' + counter)
+    debug.debug(' New Game ', href + ' ' + counter)
 
     # home_team_id
     try:

@@ -17,7 +17,7 @@ class debug:
         output = 0
         url = soup.find('link', {'rel': 'canonical'}).attrs['href']
         href = url.replace('https://www.basketball-reference.com', '')
-        print("[  Error  ]:\t" + location + "(" + field + "): Could not fill the field.\t" + href)
+        print("[   Error    ]:\t" + location + "(" + field + "): Could not fill the field.\t" + href)
         if info != '':
             print("\t\tCONTEXT: " + info)
 

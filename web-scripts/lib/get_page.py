@@ -65,7 +65,7 @@ class page:
             status, soup = self.check_cache(href)
         
         if cache and status:
-            debug.debug('Request', 'from cache: ' + href)
+            debug.debug(' Request  ', 'from cache: ' + href)
             return soup
 
         headers = {'User-Agent': self.user_agents[self.agent_index],
@@ -104,8 +104,8 @@ class page:
 
         # We probably are blocked
         if page.status_code >= 400:
-            debug.debug('Error: Request',
-                  'Probably too many requests, will be in jail until an hour after ' + time_string + '. Will keep trying intermitently.')
+            debug.debug('  Error   ',
+                        'Requests: Probably too many requests, will be in jail until an hour after ' + time_string + '. Will keep trying intermitently.')
             while not page.ok:
                 time.sleep(60)
                 page = requests.get(url)
