@@ -11,7 +11,7 @@ from lib.get_page import page
 
 base_url = 'https://www.basketball-reference.com'
 db_name = '../bball_db'
-id_cache_file = '../id_cache.pkl'
+id_cache_file = '../id_cache.json'
 
 def read_id_cache_dict():
     output = {}
@@ -40,6 +40,7 @@ def id_cache_wrap(function):
                 save_id_cache_dict(cache)
             else:
                 debug.debug('  Error   ', 'Could not write out id cache.')
+            raise
     return wrapper
 
 def generate_season_href(season):
@@ -103,6 +104,7 @@ def should_we_write(table_name, data_frame):
 
     return True
 
+@id_cache_wrap
 def get_player_info(page_obj, href, id_cache_dict):
     soup = page_obj.get(href, False)
 
@@ -119,6 +121,7 @@ def get_player_info(page_obj, href, id_cache_dict):
     output = pandas.DataFrame(info.output_row(maximum_id))
     return output
 
+@id_cache_wrap
 def get_coach_info(page_obj, href, id_cache_dict):
     soup = page_obj.get(href, False)
 
@@ -135,6 +138,7 @@ def get_coach_info(page_obj, href, id_cache_dict):
     output = pandas.DataFrame(info.output_row(maximum_id))
     return output
 
+@id_cache_wrap
 def get_executive_info(page_obj, href, id_cache_dict):
     soup = page_obj.get(href, False)
 
@@ -151,6 +155,7 @@ def get_executive_info(page_obj, href, id_cache_dict):
     output = pandas.DataFrame(info.output_row(maximum_id))
     return output
 
+@id_cache_wrap
 def get_referee_info(page_obj, href, id_cache_dict):
     soup = page_obj.get(href, False)
 
@@ -167,6 +172,7 @@ def get_referee_info(page_obj, href, id_cache_dict):
     output = pandas.DataFrame(info.output_row(maximum_id))
     return output
 
+@id_cache_wrap
 def get_team_info(page_obj, href, rank_obj, id_cache_dict):
     soup = page_obj.get(href, False)
     franchise_href = re.sub(r'[0-9]{4}.html', '', href)
@@ -219,7 +225,8 @@ def rankings(page_obj, href):
     ranks = {x.find(attrs = {'data-stat': 'team_name'}).text: int(x.find('th').text) for x in newsoup.find_all('tr')[2:32]}
     return ranks
 
-def find_remaining_players(page_obj, id_cache_dict, row_dicts):
+@id_cache_wrap
+def find_remaining_players(page_obj, row_dicts, id_cache_dict):
     output = {}
 
     for row in row_dicts:
@@ -229,6 +236,7 @@ def find_remaining_players(page_obj, id_cache_dict, row_dicts):
 
     return output
 
+@id_cache_wrap
 def get_game_data(page_obj, href, counter, id_cache_dict):
     soup = page_obj.get(href, False)
 
@@ -284,6 +292,7 @@ def get_game_data(page_obj, href, counter, id_cache_dict):
 
     return game
 
+@id_cache_wrap
 def get_season_info(page_obj, href, id_cache_dict):
     soup = page_obj.get(href, False)
 
