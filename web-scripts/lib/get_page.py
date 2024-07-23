@@ -103,13 +103,13 @@ class page:
         soup = BeautifulSoup(page.text, features="lxml")
         self.last_time = time.time()
         time_string = time.strftime('%H:%M:%S', time.localtime(self.last_time))
-        debug.debug('Request', time_string + '  requesting: ' + href)
+        debug.debug(' Request  ', time_string + '  requesting: ' + href)
 
         # Sometimes we get a refresh page
         if self.needs_refresh(soup):
             tag = soup.find('meta', {'http-equiv': 'refresh'})
             new_href = tag.attrs['content'].replace('1;URL=', '')
-            debug.debug('Request', "Got a refresh response, new request:\t" + new_href)
+            debug.debug(' Request  ', "Got a refresh response, new request:\t" + new_href)
             return self.get(new_href, cache)
 
         # Just try again before we make a decision
