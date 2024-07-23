@@ -1,5 +1,7 @@
 import sqlite3
+import json
 import re
+import os
 import pandas
 from bs4 import BeautifulSoup, Comment
 
@@ -9,6 +11,36 @@ from lib.get_page import page
 
 base_url = 'https://www.basketball-reference.com'
 db_name = '../bball_db'
+id_cache_file = '../id_cache.pkl'
+
+def read_id_cache_dict():
+    output = {}
+    if os.path.isfile(id_cache_file):
+        with open(id_cache_file, 'r') as file:
+            output = json.load(file)
+    return output
+
+def save_id_cache_dict(id_cache):
+    if os.path.isfile(id_cache_file):
+        os.remove(id_cache_file)
+
+    with open(id_cache_file, 'w+') as file:
+        json.dump(id_cache, file)
+
+def id_cache_wrap(function):
+    def wrapper(*args, **kwargs):
+        try:
+            return function(*args, **kwargs)
+        except:
+            if isinstance(args[-1], dict):
+                cache = args[-1]
+                save_id_cache_dict(cache)
+            elif isinstance(kwargs['id_cache_dict']):
+                cache = kwargs['id_cache_dict']
+                save_id_cache_dict(cache)
+            else:
+                debug.debug('  Error   ', 'Could not write out id cache.')
+    return wrapper
 
 def generate_season_href(season):
     # Going by the end year
@@ -144,7 +176,7 @@ def get_team_info(page_obj, href, rank_obj, id_cache_dict):
         franchise_href = franchise_soup.find('script').text.strip().split('"')[1]
         franchise_soup = page_obj.get(franchise_href, True)
     
-    info = team_info(franchise_soup, soup, base_url + href)
+    info = team_info(franchise_soup, soup)
 
     info.get_hrefs()
 

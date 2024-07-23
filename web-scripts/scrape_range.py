@@ -54,7 +54,7 @@ for i in seasons:
             remaining = game.players_to_match()
 
             if len(remaining) > 0:
-                matches = lib.find_remaining_players(page, id_cache, remaining)
+                matches = lib.find_remaining_players(page, remaining, id_cache)
                 game.apply_matches(matches)
 
             if game.playoffs():

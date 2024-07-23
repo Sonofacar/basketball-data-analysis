@@ -299,10 +299,10 @@ class player_info(debug):
 
 class team_info(debug):
 
-    def __init__(self, franchise_soup, soup, url):
+    def __init__(self, franchise_soup, soup):
         self.franchise_soup = franchise_soup
         self.soup = soup
-        self.url = url
+        self.url = self.soup.find('link', {'rel': 'canonical'}).attrs['href']
 
     @debug.error_wrap('team_info', 'get_hrefs', None, info = 'May affect linking up to coach and executive ids.')
     def get_hrefs(self):
@@ -314,11 +314,8 @@ class team_info(debug):
             if 'executives' in x.attrs['href']:
                 self.Executive_href = x.attrs['href']
 
+    @debug.error_wrap('team_info', 'get_hrefs', None, info = 'Needed for wins, losses, and playoff appearances; it will still fail after this')
     def set_franchise_index(self):
-        # Needed for:
-        # - wins
-        # - losses
-        # - playoff_appearance
         year = self.url.split('/')[5].replace('.html', '')
         season_text = str(int(year) - 1) + '-' + year[2:4]
         seasons_list = self.franchise_soup.select('th.left')
@@ -584,12 +581,13 @@ class game_info(debug):
                           'Not With Team': 0,
                           'Player Suspended': 0}
 
-        self.teams = self.soup.select('.scorebox strong a')
+        scorebox = self.soup.find('div', {'class': 'scorebox'})
+        teams = [x.find('a') for x in scorebox.find_all('strong')]
 
-        self.Home_Team_Name = self.teams[1].text
-        self.Home_Team_href = self.teams[1].attrs['href']
-        self.Away_Team_Name = self.teams[0].text
-        self.Away_Team_href = self.teams[0].attrs['href']
+        self.Home_Team_Name = teams[1].text
+        self.Home_Team_href = teams[1].attrs['href']
+        self.Away_Team_Name = teams[0].text
+        self.Away_Team_href = teams[0].attrs['href']
 
         self.heading = self.soup.select('h1')[0].text
 
