@@ -580,16 +580,10 @@ class game_info(debug):
                           'Did Not Dress': 0,
                           'Not With Team': 0,
                           'Player Suspended': 0}
-
-        scorebox = self.soup.find('div', {'class': 'scorebox'})
-        teams = [x.find('a') for x in scorebox.find_all('strong')]
-
-        self.Home_Team_Name = teams[1].text
-        self.Home_Team_href = teams[1].attrs['href']
-        self.Away_Team_Name = teams[0].text
-        self.Away_Team_href = teams[0].attrs['href']
-
-        self.heading = self.soup.select('h1')[0].text
+        self.converter_str = {'Did Not Play': '',
+                              'Did Not Dress': '',
+                              'Not With Team': '',
+                              'Player Suspended': ''}
 
         self.Attendance = 0
         self.Duration = 0
@@ -621,29 +615,48 @@ class game_info(debug):
                                           'TOV': [],
                                           'PF': [],
                                           'PTS': [],
+                                          'GmSc': [],
                                           'PM': []})
 
-        self.empty_df = self.empty_df.astype({'Name': object,
-                                              'MP': int,
-                                              'FG': int,
-                                              'FGA': int,
-                                              'FGp': float,
-                                              '3P': int,
-                                              '3PA': int,
-                                              '3Pp': float,
-                                              'FT': int,
-                                              'FTA': int,
-                                              'FTp': float,
-                                              'ORB': int,
-                                              'DRB': int,
-                                              'TRB': int,
-                                              'AST': int,
-                                              'STL': int,
-                                              'BLK': int,
-                                              'TOV': int,
-                                              'PF': int,
-                                              'PTS': int,
-                                              'PM': int})
+        self.df_types = {'Name': object,
+                         'MP': object,
+                         'FG': int,
+                         'FGA': int,
+                         'FGp': float,
+                         '3P': int,
+                         '3PA': int,
+                         '3Pp': float,
+                         'FT': int,
+                         'FTA': int,
+                         'FTp': float,
+                         'ORB': int,
+                         'DRB': int,
+                         'TRB': int,
+                         'AST': int,
+                         'STL': int,
+                         'BLK': int,
+                         'TOV': int,
+                         'PF': int,
+                         'PTS': int,
+                         'GmSc': float,
+                         'PM': int}
+
+        self.empty_df = self.empty_df.astype(self.df_types)
+
+        self.Injured_Away = []
+        self.Injured_Home = []
+
+    @debug.error_wrap('game_info', 'game_setup', str)
+    def game_setup(self):
+        scorebox = self.soup.find('div', {'class': 'scorebox'})
+        teams = [x.find('a') for x in scorebox.find_all('strong')]
+
+        self.Home_Team_Name = teams[1].text
+        self.Home_Team_href = teams[1].attrs['href']
+        self.Away_Team_Name = teams[0].text
+        self.Away_Team_href = teams[0].attrs['href']
+
+        self.heading = self.soup.select('h1')[0].text
 
         for line in self.soup.select('#content > div')[-2].find_all('div'):
 
@@ -666,14 +679,8 @@ class game_info(debug):
                 injured_children = [x.text.strip() for x in list(line.children) if (x.text.strip() not in do_not_catch) and not (re.match(r'[A-Z]{3}', x.text.strip()))]
                 injured = line.find_all('a')
                 self.Injured = [x.text for x in injured]
-                #self.Injured_hrefs = [x.attrs['href'] for x in injured]
                 self.Injured_dict = {x.text.strip(): x.attrs['href'] for x in injured}
 
-        homeness = 0
-        self.Injured_Away = []
-        #self.Injured_Away_hrefs = []
-        self.Injured_Home = []
-        #self.Injured_Home_hrefs = []
         iteration = 0
 
         exists = 'injured_children' in locals()
@@ -684,19 +691,23 @@ class game_info(debug):
 
         while (tmp != '') and (tmp != 'None'):
             self.Injured_Away.append(tmp)
-            #self.Injured_Away_hrefs.append(self.Injured_hrefs[iteration])
             iteration += 1
             tmp = injured_children[iteration]
 
         while (tmp != '') and (tmp != 'None'):
             self.Injured_Home.append(tmp)
-            #self.Injured_Home_hrefs.append(self.Injured_hrefs[iteration])
             iteration += 1
             tmp = injured_children[iteration]
 
     @debug.error_wrap('game_info', 'playoffs', bool, info = 'Not sure about game type; regular season is assumed.')
     def playoffs(self):
-        if ('NBA' in self.heading) and (':' in self.heading):
+        try:
+            heading = self.heading
+        except:
+            self.game_setup()
+            heading = self.heading
+
+        if ('NBA' in heading) and (':' in heading):
             output = True
         else:
             output = False
@@ -704,7 +715,13 @@ class game_info(debug):
 
     @debug.error_wrap('game_info', 'in_season_tournament', bool, info = 'As said previously, not sure about game type; regular season is assumed.')
     def in_season_tournament(self):
-        if 'In-Season' in self.heading:
+        try:
+            heading = self.heading
+        except:
+            self.game_setup()
+            heading = self.heading
+
+        if 'In-Season' in heading:
             output = True
         else:
             output = False
@@ -785,6 +802,10 @@ class game_info(debug):
         return self.Referee_IDs
 
     def output_row(self):
+        exists = self.Home_Team_Name in locals()
+        if not exists:
+            self.game_setup()
+
         self.row = {
             'Home_Team_Name': [self.home_team_name()],
             'Away_Team_Name': [self.away_team_name()],
@@ -824,14 +845,16 @@ class game_data(game_info):
         table.columns = self.tmp_columns
         new_table = table.drop(table[table['Name'] == 'Reserves'].index)
         for col in new_table.columns:
-            dtype = new_table[col].dtype
+            dtype = self.df_types[col]
 
             if ((dtype == int) or
                 (dtype == float) or
                 (dtype == bool)):
-                new_table[col] = new_table[col].fillna(0)
+                new_col = new_table[col].fillna(0).replace(self.converter)
+                new_table[col] = new_col.astype(dtype)
             else:
-                new_table[col] = new_table[col].fillna('')
+                new_col = new_table[col].fillna('').replace(self.converter_str)
+                new_table[col] = new_col.astype(dtype)
         return new_table
 
     def injured_table(self, names):
@@ -864,7 +887,7 @@ class game_data(game_info):
                 Iteration_type = 'Overtime'
 
         tmp_table = pandas.DataFrame(columns = self.tmp_columns)
-        tmp_table = pandas.read_html(StringIO(str(raw_html)), converters = self.converter)[0]
+        tmp_table = pandas.read_html(StringIO(str(raw_html)))[0]
         tmp_table = self.clean_table(tmp_table)
         tmp_table = pandas.concat([tmp_table, injured_table], ignore_index = True)
 

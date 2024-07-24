@@ -241,6 +241,7 @@ def get_game_data(page_obj, href, counter, id_cache_dict):
     soup = page_obj.get(href, False)
 
     game = game_data(soup)
+    game_data.game_setup()
 
     debug.debug(' New Game ', href + ' ' + counter)
 
