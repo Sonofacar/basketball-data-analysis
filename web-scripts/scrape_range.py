@@ -11,7 +11,7 @@ import lib
 # Other Variables
 cache_size = 1000
 page = lib.page(cache_size)
-id_cache = {}
+id_cache = lib.read_id_cache_dict()
 
 
 # Main script
@@ -69,4 +69,6 @@ for i in seasons:
                 lib.write_to_sql('player_quarters', game.player_data_quarter())
                 lib.write_to_sql('team_games', game.team_data())
                 lib.write_to_sql('team_quarters', game.team_data_quarter())
+
+lib.save_id_cache_dict(id_cache)
 

@@ -43,6 +43,11 @@ def id_cache_wrap(function):
             raise
     return wrapper
 
+def update_id_cache(id_cache, new_info):
+    key = list(new_info.keys())[0]
+    if not key in id_cache.keys():
+        id_cache.update(new_info)
+
 def generate_season_href(season):
     # Going by the end year
     href = ''.join(['/leagues/NBA_', str(season), '.html'])
@@ -59,8 +64,12 @@ def get_game_hrefs(soup):
 
 def write_to_sql(table_name, data_frame):
     conn = sqlite3.Connection(db_name)
-    debug.debug(' Writing  ', 'to ' + table_name)
-    data_frame.to_sql(name = table_name, con = conn, if_exists = 'append', index = False)
+    if should_we_write(table_name, data_frame):
+        debug.debug(' Writing  ', 'to ' + table_name)
+        try:
+            data_frame.to_sql(name = table_name, con = conn, if_exists = 'append', index = False)
+        except:
+            debug.debug('  Error   ', 'Could write to the ' + table_name + 'table. Maybe check the database rules.')
     conn.close()
 
 def retrieve_from_sql(table_name):
@@ -102,6 +111,38 @@ def should_we_write(table_name, data_frame):
         else:
             return False
 
+    if table_name == 'player_info':
+        cols = ['Name', 'Birthday', 'Debut_Date']
+        merge = tmp.merge(data_frame, 'outer', on = cols, indicator = True)
+        if len(merge[merge['_merge'] == 'both']) == 0:
+            return True
+        else:
+            return False
+
+    if table_name == 'referee_info':
+        cols = ['Name', 'Number', 'Birthday']
+        merge = tmp.merge(data_frame, 'outer', on = cols, indicator = True)
+        if len(merge[merge['_merge'] == 'both']) == 0:
+            return True
+        else:
+            return False
+
+    if table_name == 'executive_info':
+        cols = ['Name', 'Birthday', 'Teams']
+        merge = tmp.merge(data_frame, 'outer', on = cols, indicator = True)
+        if len(merge[merge['_merge'] == 'both']) == 0:
+            return True
+        else:
+            return False
+
+    if table_name == 'coach_info':
+        cols = ['Name', 'Birthday', 'Wins', 'Losses', 'Teams']
+        merge = tmp.merge(data_frame, 'outer', on = cols, indicator = True)
+        if len(merge[merge['_merge'] == 'both']) == 0:
+            return True
+        else:
+            return False
+
     return True
 
 @id_cache_wrap
@@ -115,7 +156,7 @@ def get_player_info(page_obj, href, id_cache_dict):
     else:
         maximum_id = db['Player_ID'].max()
 
-    id_cache_dict.update({href: maximum_id + 1})
+    update_id_cache(id_cache_dict, {href: int(maximum_id + 1)})
 
     info = player_info(soup)
     output = pandas.DataFrame(info.output_row(maximum_id))
@@ -132,7 +173,7 @@ def get_coach_info(page_obj, href, id_cache_dict):
     else:
         maximum_id = db['Coach_ID'].max()
 
-    id_cache_dict.update({href: maximum_id + 1})
+    update_id_cache(id_cache_dict, {href: int(maximum_id + 1)})
 
     info = coach_info(soup)
     output = pandas.DataFrame(info.output_row(maximum_id))
@@ -149,7 +190,7 @@ def get_executive_info(page_obj, href, id_cache_dict):
     else:
         maximum_id = db['Executive_ID'].max()
 
-    id_cache_dict.update({href: maximum_id + 1})
+    update_id_cache(id_cache_dict, {href: int(maximum_id + 1)})
 
     info = executive_info(soup)
     output = pandas.DataFrame(info.output_row(maximum_id))
@@ -166,7 +207,7 @@ def get_referee_info(page_obj, href, id_cache_dict):
     else:
         maximum_id = db['Referee_ID'].max()
 
-    id_cache_dict.update({href: maximum_id + 1})
+    update_id_cache(id_cache_dict, {href: int(maximum_id + 1)})
 
     info = referee_info(soup)
     output = pandas.DataFrame(info.output_row(maximum_id))
@@ -209,7 +250,7 @@ def get_team_info(page_obj, href, rank_obj, id_cache_dict):
     if pandas.isna(maximum_team_id):
         maximum_team_id = 0
 
-    id_cache_dict.update({href: maximum_team_id + 1})
+    update_id_cache(id_cache_dict, {href: int(maximum_team_id + 1)})
     ranking = rank_obj[info.name()]
 
     output = pandas.DataFrame(info.output_row(ranking,
@@ -241,7 +282,7 @@ def get_game_data(page_obj, href, counter, id_cache_dict):
     soup = page_obj.get(href, False)
 
     game = game_data(soup)
-    game_data.game_setup()
+    game.game_setup()
 
     debug.debug(' New Game ', href + ' ' + counter)
 
