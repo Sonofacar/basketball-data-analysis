@@ -576,14 +576,10 @@ class game_info(debug):
 
     def __init__(self, soup):
         self.soup = soup
-        self.converter = {'Did Not Play': 0,
-                          'Did Not Dress': 0,
-                          'Not With Team': 0,
-                          'Player Suspended': 0}
-        self.converter_str = {'Did Not Play': '',
-                              'Did Not Dress': '',
-                              'Not With Team': '',
-                              'Player Suspended': ''}
+        self.to_convert = ['Did Not Play',
+                           'Did Not Dress',
+                           'Not With Team',
+                           'Player Suspended']
 
         self.Attendance = 0
         self.Duration = 0
@@ -842,6 +838,11 @@ class game_data(game_info):
         output = [(minutes[i] * 60) + seconds[i] for i in range(len(minutes))]
         return pandas.Series(output, dtype = 'int')
 
+    def replace(self, column, value):
+        for i in self.to_convert:
+            column.loc[column == i,:] = value
+        return column
+
     def clean_table(self, table):
         table.columns = self.tmp_columns
         new_table = table.drop(table[table['Name'] == 'Reserves'].index)
@@ -851,10 +852,12 @@ class game_data(game_info):
             if ((dtype == int) or
                 (dtype == float) or
                 (dtype == bool)):
-                new_col = new_table[col].fillna(0).replace(self.converter)
+                new_col = new_table[col].fillna('0')
+                new_col = self.replace(new_col, '0')
                 new_table[col] = new_col.astype(dtype)
             else:
-                new_col = new_table[col].fillna('').replace(self.converter_str)
+                new_col = new_table[col].fillna('')
+                new_col = self.replace(new_col, '')
                 new_table[col] = new_col.astype(dtype)
         return new_table
 
