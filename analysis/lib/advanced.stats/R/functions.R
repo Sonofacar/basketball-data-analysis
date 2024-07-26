@@ -102,8 +102,10 @@ defensive_rating <- function(MP, STL, BLK, DRB, PF, team_poss, team_MP,
 	return(DRtg)
 }
 
-points_gained <- function()
+points_produced <- function(FGA, FTA, TO, O_rating)
 {
+	output <- ( FGA + 0.44*FTA + TO ) * O_rating / 100
+	return(output)
 }
 
 win_shares <- function()
