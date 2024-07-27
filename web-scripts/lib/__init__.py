@@ -141,7 +141,7 @@ def should_we_write(table_name, data_frame):
             return False
 
     if table_name == 'coach_info':
-        cols = ['Name', 'Birthday', 'Wins', 'Losses', 'Teams']
+        cols = ['Name', 'Birthday', 'Wins', 'Losses']
         tmp = retrieve_from_sql(table_name)
         merge = tmp.merge(data_frame, 'outer', on = cols, indicator = True)
         if len(merge[merge['_merge'] == 'both']) == 0:
