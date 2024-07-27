@@ -79,9 +79,8 @@ def retrieve_from_sql(table_name):
     return df
 
 def should_we_write(table_name, data_frame):
-    tmp = retrieve_from_sql(table_name)
-
     if table_name == 'seasons':
+        tmp = retrieve_from_sql(table_name)
         if len(tmp.loc[tmp['Season'] == data_frame['Season'].item()]) == 0:
             return True
         else:
@@ -89,6 +88,7 @@ def should_we_write(table_name, data_frame):
 
     if table_name == 'game_info':
         cols = ['Home_Team_Name', 'Away_Team_Name', 'Date']
+        tmp = retrieve_from_sql(table_name)
         merge = tmp.merge(data_frame, 'outer', on = cols, indicator = True)
         if len(merge[merge['_merge'] == 'both']) == 0:
             return True
@@ -97,6 +97,7 @@ def should_we_write(table_name, data_frame):
 
     if table_name == 'playoff_game_info':
         cols = ['Home_Team_Name', 'Away_Team_Name', 'Date']
+        tmp = retrieve_from_sql(table_name)
         merge = tmp.merge(data_frame, 'outer', on = cols, indicator = True)
         if len(merge[merge['_merge'] == 'both']) == 0:
             return True
@@ -105,6 +106,7 @@ def should_we_write(table_name, data_frame):
 
     if table_name == 'team_info':
         cols = ['Name', 'Season']
+        tmp = retrieve_from_sql(table_name)
         merge = tmp.merge(data_frame, 'outer', on = cols, indicator = True)
         if len(merge[merge['_merge'] == 'both']) == 0:
             return True
@@ -113,6 +115,7 @@ def should_we_write(table_name, data_frame):
 
     if table_name == 'player_info':
         cols = ['Name', 'Birthday', 'Debut_Date']
+        tmp = retrieve_from_sql(table_name)
         merge = tmp.merge(data_frame, 'outer', on = cols, indicator = True)
         if len(merge[merge['_merge'] == 'both']) == 0:
             return True
@@ -121,6 +124,7 @@ def should_we_write(table_name, data_frame):
 
     if table_name == 'referee_info':
         cols = ['Name', 'Number', 'Birthday']
+        tmp = retrieve_from_sql(table_name)
         merge = tmp.merge(data_frame, 'outer', on = cols, indicator = True)
         if len(merge[merge['_merge'] == 'both']) == 0:
             return True
@@ -129,6 +133,7 @@ def should_we_write(table_name, data_frame):
 
     if table_name == 'executive_info':
         cols = ['Name', 'Birthday', 'Teams']
+        tmp = retrieve_from_sql(table_name)
         merge = tmp.merge(data_frame, 'outer', on = cols, indicator = True)
         if len(merge[merge['_merge'] == 'both']) == 0:
             return True
@@ -137,6 +142,7 @@ def should_we_write(table_name, data_frame):
 
     if table_name == 'coach_info':
         cols = ['Name', 'Birthday', 'Wins', 'Losses', 'Teams']
+        tmp = retrieve_from_sql(table_name)
         merge = tmp.merge(data_frame, 'outer', on = cols, indicator = True)
         if len(merge[merge['_merge'] == 'both']) == 0:
             return True
