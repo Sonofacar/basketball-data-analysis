@@ -20,6 +20,18 @@ pace <- function(Team_MP, Team_Poss, opponent_Poss)
 	return(output)
 }
 
+touches <- function(AST, TOV, FGA, FTA, team_FTA, opponent_PF)
+{
+	output <- FGA + TOV + ( FTA / (team_FTA / opponent_PF) ) + ( AST/0.17 )
+	return(output)
+}
+
+points_per_possession <- function(Pts, FGA, FTA, TO)
+{
+	output <- PTS / ( FGA + 0.44*FTA + TO )
+	return(output)
+}
+
 effective_fg_pcent <- function(FG, ThreeP, FGA)
 {
 	output <- (FG + 0.5*ThreeP) / FGA
@@ -160,6 +172,39 @@ espn_fantasy <- function(Pts, Threes, FGA, FGM, FTA, FTM, REB, AST, STL, BLK, TO
 	shots <- Pts + Threes - FGA + 2*FGM - FTA + FTM
 	others <- REB + 2*AST + 4*STL + 4*BLK - 2*TOV
 	output <- shots + others
+	return(output)
+}
+
+win_score <- function(Pts, REB, STL, AST, BLK, TOV, PF, FGA, FTA)
+{
+	output <- Pts + REB + STL + 0.5*AST + 0.5*BLK - FGA - TOV - 0.5*FTA - 0.5*PF
+	return(output)
+}
+
+player_impact_estimate <- function(PTS, AST, STL, BLK, Def_REB, Off_REB, FGA,
+				   FGM, FTA, FTM, PF, TO, team_PTS, team_AST,
+				   team_STL, team_BLK, team_Def_REB, team_Off_REB,
+				   team_FGA, team_FGM, team_FTA, team_FTM,
+				   team_PF, team_TO)
+{
+	numerator <- PTS + FGM + FTM – FGA – FTA + Def_REB + Off_REB/2 + AST + STL + BLK/2 – PF – TO
+	denominator <- (team_PTS + team_FGM + team_FTM – team_FGA – team_FTA + team_Def_REB + 
+			team_Off_REB/2 + team_AST + team_STL + team_BLK/2 – team_PF – team_TO)
+	output <- numerator / denominator
+	return(output)
+}
+
+approximate_value <- function(Pts, REB, AST, STL, BLK, TOV, FGA, FGM, FTA, FTM)
+{
+	Credits <- Pts + REB + AST + STL + BLK - (FGA - FGM) - (FTA - FTM) - TOV)
+	output <- Credits^(3/4) / 21
+	return(output)
+}
+
+game_score <- function(Pts, Off_REB, Def_REB, AST, STL, BLK, TOV, FGA, FGM, FTA, FTM)
+{
+	output <- Pts + 0.4*FGM + 0.7*Off_REB + 0.3*Def_REB + STLs + 0.7*AST +
+		0.7*BLK -  0.7*FGA - 0.4*(FTA - FTM) – 0.4*PF - TOV
 	return(output)
 }
 
