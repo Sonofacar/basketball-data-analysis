@@ -126,6 +126,20 @@ points_produced <- function(FGA, FTA, TO, O_rating)
 	return(output)
 }
 
+points_allowed <- function(MP, D_rating, team_MP, team_Poss)
+{
+	output <- (D_rating / 100) * (.2 * (MP / (team_MP/5) ) * team_Poss)
+	return(output)
+}
+
+net_points <- function(MP, FGA, FTA, TO, O_rating, D_rating, team_MP, team_Poss)
+{
+	produced <- ( FGA + 0.44*FTA + TO ) * O_rating / 100
+	allowed <- (D_rating / 100) * (.2 * (MP / (team_MP/5) ) * team_Poss)
+	output <- produced - allowed
+	return(output)
+}
+
 offensive_win_shares <- function(Pts_Prod, Off_Poss, team_Pace, League_Pace, League_PPP, League_PPG)
 {
 	# Leauge_PPP is league points per possession
