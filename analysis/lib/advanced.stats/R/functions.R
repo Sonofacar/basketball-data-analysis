@@ -14,6 +14,12 @@ possessions <- function(FGA, FTA, ORB, FG, TOV, opponent_FGA, opponent_FTA, oppo
 	return(output)
 }
 
+pace <- function(Team_MP, Team_Poss, opponent_Poss)
+{
+	output <- (240 / Team_MP) * ( Team_Poss + opponent_Poss ) / 2
+	return(output)
+}
+
 effective_fg_pcent <- function(FG, ThreeP, FGA)
 {
 	output <- (FG + 0.5*ThreeP) / FGA
@@ -41,7 +47,7 @@ rebound_pcent <- function(player_RB, player_MP, team_RB, team_MP, opponent_RB)
 	return(output)
 }
 
-player_offensive_rating <- function(MP, AST, ORB, FGA, FGM, FTA, FTM, 
+offensive_rating <- function(MP, AST, ORB, FGA, FGM, FTA, FTM, 
 				    ThreePA, ThreePM, TOV, PTS, team_MP,
 				    team_AST, team_ORB, team_FGA, team_FGM,
 				    team_FTA, team_FTM, team_ThreePA,
@@ -108,7 +114,56 @@ points_produced <- function(FGA, FTA, TO, O_rating)
 	return(output)
 }
 
-win_shares <- function()
+offensive_win_shares <- function(Pts_Prod, Off_Poss, team_Pace, League_Pace, League_PPP, League_PPG)
+{
+	# Leauge_PPP is league points per possession
+	Marg_Off <- Pts_Prod - 0.92*League_PPP * Off_Poss
+	Marg_Pts_per_win <- 0.32*League_PPG * (team_Pace / League_Pace)
+	output <- Marg_Off / Marg_Pts_per_win
+	return(output)
+}
+
+defensive_win_shares <- function(MP, D_rating, team_MP, team_Pace, team_Def_Poss,
+				 League_Pace, League_PPP, League_PPG )
+{
+	# Leauge_PPP is league points per possession
+	Marg_Def <- (MP / team_MP) * team_Def_Poss * ( 1.08*League_PPP - (D_rating / 100) )
+	Marg_Pts_per_win <- 0.32 * League_PPG * (team_Pace / League_Pace)
+	output <- Marg_Def / Marg_Pts_per_win
+	return(output)
+}
+
+win_shares <- function(MP, Pts_Prod, D_rating, Off_Poss, team_MP, team_Pace,
+		       team_Def_Poss, League_Pace, League_PPP, League_PPG)
+{
+	# Leauge_PPP is league points per possession
+	Marg_Pts_per_win <- 0.32 * League_PPG * (team_Pace / League_Pace)
+	Marg_Def <- (MP / team_MP) * team_Def_Poss * ( 1.08*League_PPP - (D_rating / 100) )
+	Marg_Off <- Pts_Prod - 0.92*League_PPP * Off_Poss
+	output <- ( Marg_Off + Marg_Def ) / Marg_Pts_per_win
+	return(output)
+}
+
+espn_fantasy <- function(Pts, Threes, FGA, FGM, FTA, FTM, REB, AST, STL, BLK, TOV)
+{
+	# Point = 1
+	# 3PM = 1
+	# FGA = -1
+	# FGM = 2
+	# FTA = -1
+	# FTM = 1
+	# REB = 1
+	# AST = 2
+	# STL = 4
+	# BLK = 4
+	# TOV = -2
+	shots <- Pts + Threes - FGA + 2*FGM - FTA + FTM
+	others <- REB + 2*AST + 4*STL + 4*BLK - 2*TOV
+	output <- shots + others
+	return(output)
+}
+
+points_gained <- function()
 {
 }
 
