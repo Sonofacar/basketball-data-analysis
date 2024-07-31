@@ -1011,8 +1011,6 @@ class game_data(game_info):
         Teams = [self.home_team_name(), self.away_team_name()]
         tmp_table = self.total_game[~self.total_game.Name.str.contains('|'.join(Teams))].reset_index(drop = True)
         output = {'Seconds': self.player_to_seconds(tmp_table['MP']).astype(int).abs(),
-                  'Field_Goals': tmp_table['FG'].astype(int).abs(),
-                  'Field_Goal_Attempts': tmp_table['FGA'].astype(int).abs(),
                   'Threes': tmp_table['3P'].astype(int).abs(),
                   'Three_Attempts': tmp_table['3PA'].astype(int).abs(),
                   'Twos': tmp_table['FG'].astype(int).abs(),
@@ -1043,8 +1041,6 @@ class game_data(game_info):
         tmp_table = self.quarters[~self.quarters.Name.str.contains('|'.join(Teams))].reset_index(drop = True)
         output = {'Quarter': tmp_table.Quarter,
                   'Seconds': self.player_to_seconds(tmp_table['MP']).astype(int).abs(),
-                  'Field_Goals': tmp_table['FG'].astype(int).abs(),
-                  'Field_Goal_Attempts': tmp_table['FGA'].astype(int).abs(),
                   'Threes': tmp_table['3P'].astype(int).abs(),
                   'Three_Attempts': tmp_table['3PA'].astype(int).abs(),
                   'Twos': tmp_table['FG'].astype(int).abs(),
@@ -1074,8 +1070,6 @@ class game_data(game_info):
         Teams = [self.home_team_name(), self.away_team_name()]
         tmp_table = self.total_game[self.total_game.Name.str.contains('|'.join(Teams))]
         output = {'Total_Minutes': self.replace(tmp_table['MP'], '0').astype(int).abs(),
-                  'Field_Goals': tmp_table['FG'].astype(int).abs(),
-                  'Field_Goal_Attempts': tmp_table['FGA'].astype(int).abs(),
                   'Threes': tmp_table['3P'].astype(int).abs(),
                   'Three_Attempts': tmp_table['3PA'].astype(int).abs(),
                   'Twos': tmp_table['FG'].astype(int).abs(),
@@ -1103,8 +1097,6 @@ class game_data(game_info):
         tmp_table = self.quarters[self.quarters.Name.str.contains('|'.join(Teams))]
         output = {'Quarter': tmp_table.Quarter,
                   'Total_Minutes': self.replace(tmp_table['MP'], '0').astype(int).abs(),
-                  'Field_Goals': tmp_table['FG'].astype(int).abs(),
-                  'Field_Goal_Attempts': tmp_table['FGA'].astype(int).abs(),
                   'Threes': tmp_table['3P'].astype(int).abs(),
                   'Three_Attempts': tmp_table['3PA'].astype(int).abs(),
                   'Twos': tmp_table['FG'].astype(int).abs(),

@@ -75,8 +75,6 @@ FOREIGN KEY(Coach_ID) REFERENCES coaches(Coach_ID)
 
 team_games = '''CREATE TABLE IF NOT EXISTS team_games(
 Total_minutes INTEGER CHECK (Total_minutes >= 0),
-Field_Goals INTEGER NOT NULL DEFAULT 0 CHECK (Field_Goals >= 0),
-Field_Goal_Attempts INTEGER NOT NULL DEFAULT 0 CHECK (Field_Goal_Attempts >= 0),
 Threes INTEGER NOT NULL DEFAULT 0 CHECK (Threes >= 0),
 Three_Attempts INTEGER NOT NULL DEFAULT 0 CHECK (Three_Attempts >= 0),
 Twos INTEGER NOT NULL DEFAULT 0 CHECK (Twos >= 0),
@@ -106,8 +104,6 @@ FOREIGN KEY(Opponent_ID) REFERENCES team_info(Team_ID)
 team_quarters = '''CREATE TABLE IF NOT EXISTS team_quarters(
 Quarter INTEGER NOT NULL CHECK (Quarter > 0),
 Total_Minutes INTEGER CHECK (Total_Minutes >= 0),
-Field_Goals INTEGER NOT NULL DEFAULT 0 CHECK (Field_Goals >= 0),
-Field_Goal_Attempts INTEGER NOT NULL DEFAULT 0 CHECK (Field_Goal_Attempts >= 0),
 Threes INTEGER NOT NULL DEFAULT 0 CHECK (Threes >= 0),
 Three_Attempts INTEGER NOT NULL DEFAULT 0 CHECK (Three_Attempts >= 0),
 Twos INTEGER NOT NULL DEFAULT 0 CHECK (Twos >= 0),
@@ -136,8 +132,6 @@ FOREIGN KEY(Opponent_ID) REFERENCES team_info(Team_ID)
 
 team_games_playoffs = '''CREATE TABLE IF NOT EXISTS team_games_playoffs(
 Total_minutes INTEGER CHECK (Total_minutes >= 0),
-Field_Goals INTEGER NOT NULL DEFAULT 0 CHECK (Field_Goals >= 0),
-Field_Goal_Attempts INTEGER NOT NULL DEFAULT 0 CHECK (Field_Goal_Attempts >= 0),
 Threes INTEGER NOT NULL DEFAULT 0 CHECK (Threes >= 0),
 Three_Attempts INTEGER NOT NULL DEFAULT 0 CHECK (Three_Attempts >= 0),
 Twos INTEGER NOT NULL DEFAULT 0 CHECK (Twos >= 0),
@@ -167,8 +161,6 @@ FOREIGN KEY(Opponent_ID) REFERENCES team_info(Team_ID)
 team_quarters_playoffs = '''CREATE TABLE IF NOT EXISTS team_quarters_playoffs(
 Quarter INTEGER NOT NULL CHECK (Quarter > 0),
 Total_Minutes INTEGER CHECK (Total_Minutes >= 0),
-Field_Goals INTEGER NOT NULL DEFAULT 0 CHECK (Field_Goals >= 0),
-Field_Goal_Attempts INTEGER NOT NULL DEFAULT 0 CHECK (Field_Goal_Attempts >= 0),
 Threes INTEGER NOT NULL DEFAULT 0 CHECK (Threes >= 0),
 Three_Attempts INTEGER NOT NULL DEFAULT 0 CHECK (Three_Attempts >= 0),
 Twos INTEGER NOT NULL DEFAULT 0 CHECK (Twos >= 0),
@@ -212,8 +204,6 @@ Player_ID INTEGER NOT NULL PRIMARY KEY
 
 player_games = '''CREATE TABLE IF NOT EXISTS player_games(
 Seconds INTEGER NOT NULL DEFAULT 0 CHECK (Seconds >= 0),
-Field_Goals INTEGER NOT NULL DEFAULT 0 CHECK (Field_Goals >= 0),
-Field_Goal_Attempts INTEGER NOT NULL DEFAULT 0 CHECK (Field_Goal_Attempts >= 0),
 Threes INTEGER NOT NULL DEFAULT 0 CHECK (Threes >= 0),
 Three_Attempts INTEGER NOT NULL DEFAULT 0 CHECK (Three_Attempts >= 0),
 Twos INTEGER NOT NULL DEFAULT 0 CHECK (Twos >= 0),
@@ -247,8 +237,6 @@ FOREIGN KEY(Opponent_ID) REFERENCES team_info(Team_ID)
 player_quarters = '''CREATE TABLE IF NOT EXISTS player_quarters(
 Quarter INTEGER NOT NULL CHECK (Quarter > 0),
 Seconds INTEGER NOT NULL DEFAULT 0 CHECK (Seconds >= 0),
-Field_Goals INTEGER NOT NULL DEFAULT 0 CHECK (Field_Goals >= 0),
-Field_Goal_Attempts INTEGER NOT NULL DEFAULT 0 CHECK (Field_Goal_Attempts >= 0),
 Threes INTEGER NOT NULL DEFAULT 0 CHECK (Threes >= 0),
 Three_Attempts INTEGER NOT NULL DEFAULT 0 CHECK (Three_Attempts >= 0),
 Twos INTEGER NOT NULL DEFAULT 0 CHECK (Twos >= 0),
@@ -281,8 +269,6 @@ FOREIGN KEY(Opponent_ID) REFERENCES team_info(Team_ID)
 
 player_games_playoffs = '''CREATE TABLE IF NOT EXISTS player_games_playoffs(
 Seconds INTEGER NOT NULL DEFAULT 0 CHECK (Seconds >= 0),
-Field_Goals INTEGER NOT NULL DEFAULT 0 CHECK (Field_Goals >= 0),
-Field_Goal_Attempts INTEGER NOT NULL DEFAULT 0 CHECK (Field_Goal_Attempts >= 0),
 Threes INTEGER NOT NULL DEFAULT 0 CHECK (Threes >= 0),
 Three_Attempts INTEGER NOT NULL DEFAULT 0 CHECK (Three_Attempts >= 0),
 Twos INTEGER NOT NULL DEFAULT 0 CHECK (Twos >= 0),
@@ -316,8 +302,6 @@ FOREIGN KEY(Opponent_ID) REFERENCES team_info(Team_ID)
 player_quarters_playoffs = '''CREATE TABLE IF NOT EXISTS player_quarters_playoffs(
 Quarter INTEGER NOT NULL CHECK (Quarter > 0),
 Seconds INTEGER NOT NULL DEFAULT 0 CHECK (Seconds >= 0),
-Field_Goals INTEGER NOT NULL DEFAULT 0 CHECK (Field_Goals >= 0),
-Field_Goal_Attempts INTEGER NOT NULL DEFAULT 0 CHECK (Field_Goal_Attempts >= 0),
 Threes INTEGER NOT NULL DEFAULT 0 CHECK (Threes >= 0),
 Three_Attempts INTEGER NOT NULL DEFAULT 0 CHECK (Three_Attempts >= 0),
 Twos INTEGER NOT NULL DEFAULT 0 CHECK (Twos >= 0),
