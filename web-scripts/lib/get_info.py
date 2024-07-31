@@ -579,7 +579,8 @@ class game_info(debug):
         self.to_convert = ['Did Not Play',
                            'Did Not Dress',
                            'Not With Team',
-                           'Player Suspended']
+                           'Player Suspended',
+                           '']
 
         self.Attendance = 0
         self.Duration = 0
@@ -790,7 +791,10 @@ class game_info(debug):
     def set_referee_ids(self, In):
         self.Referee_IDs = [0] * 3
         for i in range(len(In)):
-            self.Referee_IDs[i] = In[i]
+            try:
+                self.Referee_IDs[i] = In[i]
+            except:
+                continue
         return self.Referee_IDs
 
     @debug.error_wrap('game_info', 'referee_ids', list, default = [0, 0, 0], info = 'This field has not been linked yet')
@@ -824,6 +828,7 @@ class game_data(game_info):
 
     def player_to_seconds(self, series):
         series.loc[series == 0] = '0:0'
+        series.loc[series == ''] = '0:0'
 
         minutes = []
         seconds = []
@@ -840,7 +845,7 @@ class game_data(game_info):
 
     def replace(self, column, value):
         for i in self.to_convert:
-            column.loc[column == i,:] = value
+            column.loc[column == i] = value
         return column
 
     def clean_table(self, table):
@@ -855,6 +860,7 @@ class game_data(game_info):
                 new_col = new_table[col].fillna('0')
                 new_col = self.replace(new_col, '0')
                 new_table[col] = new_col.astype(dtype)
+
             else:
                 new_col = new_table[col].fillna('')
                 new_col = self.replace(new_col, '')
@@ -1067,7 +1073,7 @@ class game_data(game_info):
     def team_data(self):
         Teams = [self.home_team_name(), self.away_team_name()]
         tmp_table = self.total_game[self.total_game.Name.str.contains('|'.join(Teams))]
-        output = {'Total_Minutes': tmp_table['MP'].astype(int).abs(),
+        output = {'Total_Minutes': self.replace(tmp_table['MP'], '0').astype(int).abs(),
                   'Field_Goals': tmp_table['FG'].astype(int).abs(),
                   'Field_Goal_Attempts': tmp_table['FGA'].astype(int).abs(),
                   'Threes': tmp_table['3P'].astype(int).abs(),
@@ -1096,7 +1102,7 @@ class game_data(game_info):
         Teams = [self.home_team_name(), self.away_team_name()]
         tmp_table = self.quarters[self.quarters.Name.str.contains('|'.join(Teams))]
         output = {'Quarter': tmp_table.Quarter,
-                  'Total_Minutes': tmp_table['MP'].astype(int).abs(),
+                  'Total_Minutes': self.replace(tmp_table['MP'], '0').astype(int).abs(),
                   'Field_Goals': tmp_table['FG'].astype(int).abs(),
                   'Field_Goal_Attempts': tmp_table['FGA'].astype(int).abs(),
                   'Threes': tmp_table['3P'].astype(int).abs(),
