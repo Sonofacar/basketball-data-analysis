@@ -1,6 +1,7 @@
 Work in progress.
 
 This repo is for my own personal enjoyment and to showcase my skills in data analysis and webscraping.
+
 # Web-scraping Scripts
 
 To use,
@@ -15,15 +16,18 @@ The `scrape-range.py` script requires two years as arguments (must be later than
 python3 scrape-range.py 2000 2023
 ```
 Be warned,
-this will take a *long* time as it will wait for 3 seconds between each request to Basketball-Reference.
-It is also important to note that the script caches certain web pages to reduce the number of requests,
-but this comes at the cost of large use of memory.
-Currently,
-this should take about 5GB of memory by caching 1000 pages at its peak,
-but that is merely a rough calculation.
-This number could be adjusted by the user.
+this will take a *long* time as it will wait for 4 seconds between each request to Basketball-Reference.
 
-The other is still in progress but will run similarly to get the data for a single day.
+The other is still in progress but will run similarly to get the data for a given date.
+
+## Data Cleaning
+
+Even if the script did everything perfectly,
+there would be errors from the website.
+Here are some if the errors I know of:
+| Where/When                                             | What                                                         |
+|--------------------------------------------------------|--------------------------------------------------------------|
+| Oklahoma City Thunder, Milwaukee Bucks, April 12, 2024 | Duration: it should be 2 hours and 6 minutes, not 206 hours. |
 
 ## Ethics
 
