@@ -224,8 +224,8 @@ approximate_value <- function(Pts, FGM, FGA, FTM, FTA, REB, AST, STL, BLK, TOV) 
 	return(output)
 }
 
-game_score <- function(Pts, FGM, FGA, FTM, FTA, O_REB, D_REB, AST, STL, BLK, TOV) {
-	output <- Pts + 0.4 * FGM + 0.7 * O_REB + 0.3 * D_REB + STLs + 0.7 * AST +
+game_score <- function(Pts, FGM, FGA, FTM, FTA, O_REB, D_REB, AST, STL, BLK, TOV, PF) {
+	output <- Pts + 0.4 * FGM + 0.7 * O_REB + 0.3 * D_REB + STL + 0.7 * AST +
 		0.7 * BLK - 0.7 * FGA - 0.4 * (FTA - FTM) - 0.4 * PF - TOV
 	return(output)
 }
