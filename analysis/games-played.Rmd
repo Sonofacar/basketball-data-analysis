@@ -1,0 +1,56 @@
+---
+title: "Modeling NBA Number of Games Played by Players"
+author: "Carson Buttars"
+date: ""
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+library(DBI)
+library(tidyverse)
+conn = dbConnect(RSQLite::SQLite(), '../data/bball_db')
+
+player_info <- dbReadTable(conn, 'player_info') %>%
+	as_tibble() %>%
+	mutate(Birthday = mdy(Birthday),
+		Debut_Date = mdy(Debut_Date)
+	)
+player_season_totals <- dbReadTable(conn, 'player_games') %>%
+	as_tibble() %>%
+	group_by(Player_ID, Team_ID) %>%
+	summarize(MP = sum(Seconds) / 60,
+		Games = n(),
+		FG = sum(Twos) + sum(Threes),
+		FGA = sum(Two_Attempts) + sum(Three_Attempts),
+		Twos = sum(Twos),
+		TwoPA = sum(Two_Attempts),
+		Threes = sum(Threes),
+		ThreePA = sum(Three_Attempts),
+		FT = sum(Freethrows),
+		FTA = sum(Freethrow_Attempts),
+	)
+```
+
+---
+# The response variable: games per season
+# Explanatory variables I want to grab:
+# - Age (at beginning of season)
+# - usage
+# - Last year's touches
+# - Last year's team pace
+# - Last year's minutes per game
+# - Last 2 years' minutes per game
+# - Last 3 years' games played %
+# - Last 5 years' games played %
+# - Career proportion of games injured
+# - Offensive Rating
+# - Defensive Rating
+# - Offensive Win Shares
+# - Defensive Win Shares
+# - Player Impact Estimate
+# - Average Game Score
+---
+
+```{r data_cleanup, include=FALSE}
+
+```
