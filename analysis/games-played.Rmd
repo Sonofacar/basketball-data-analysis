@@ -21,7 +21,7 @@ season_start <- dbReadTable(conn, 'game_info') %>%
 	as_tibble() %>%
 	mutate(Date = mdy(Date)) %>%
 	group_by(Season) %>%
-	summarize(Start_Date = first(Date) %>%
+	summarize(Start_Date = first(Date)) %>%
 	select(Season, Start_Date)
 
 team_games <- dbReadTable(conn, 'team_games') %>%
@@ -53,21 +53,25 @@ player_season_totals <- dbReadTable(conn, 'player_games') %>%
 				        Twos_team + Threes_team,
 				        Freethrow_Attempts_team,
 				        Offensive_Rebounds_team,
+				        Deffensive_Rebounds_team,
 				        Turnovers_team,
 				        Twos_opponent + Threes_opponent,
 				        Twos_opponent + Threes_opponent,
 				        Freethrow_Attempts_opponent,
 				        Offensive_Rebounds_opponent,
+				        Deffensive_Rebounds_opponent,
 				        Turnovers_opponent),
 		Poss_opponent = possessions(Twos_opponent + Threes_opponent,
 					    Twos_opponent + Threes_opponent,
 					    Freethrow_Attempts_opponent,
 					    Offensive_Rebounds_opponent,
+					    Deffensive_Rebounds_opponent,
 					    Turnovers_opponent,
 					    Twos_team + Threes_team,
 					    Twos_team + Threes_team,
 					    Freethrow_Attempts_team,
 					    Offensive_Rebounds_team,
+					    Deffensive_Rebounds_team,
 					    Turnovers_team),
 		Pace_team = pace(MP_team, Poss_team, Poss_opponent),
 		Pace_opponent = pace(MP_opponent, Poss_opponent, Poss_team),

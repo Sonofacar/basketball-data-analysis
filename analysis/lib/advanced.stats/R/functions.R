@@ -34,7 +34,7 @@ usage <- function(MP, FGA, FTA, TO, team_MP, team_FGA, team_FTA, team_TO) {
 	return(output)
 }
 
-possessions <- function(FGM, FGA, FTA, O_REB, TOV, opp_FGM, opp_FGA, opp_FTA, opp_O_REB, opp_TOV) {
+possessions <- function(FGM, FGA, FTA, O_REB, D_REB, TOV, opp_FGM, opp_FGA, opp_FTA, opp_O_REB, opp_D_REB, opp_TOV) {
 	team <- (FGA + 0.4 * FTA - 1.07 * (O_REB / (O_REB + opp_D_REB)) * (FGA - FGM) + TOV)
 	opponent <- (opp_FGA + 0.4 * opp_FTA - 1.07 * (opp_O_REB / (opp_O_REB + D_REB)) * (opp_FGA - opp_FGM) + opp_TOV)
 	output <- 0.5 * (team + opponent)
