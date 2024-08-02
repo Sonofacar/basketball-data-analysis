@@ -25,31 +25,15 @@ season_start <- dbReadTable(conn, 'game_info') %>%
 	select(Season, Start_Date)
 
 team_games <- dbReadTable(conn, 'team_games') %>%
+	rename(MP = Total_minutes) %>%
 	as_tibble()
 
-player_season_totals <- dbReadTable(conn, 'player_games') %>%
-	as_tibble() %>%
-	filter(Season <= 2023, Season != 2011, Player_ID != 970) %>%
+team_and_opponents <- team_games %>%
 	inner_join(team_games, by = c('Game_ID' = 'Game_ID',
-				      'Team_ID' = 'Team_ID'),
-		   suffix = c('', '_team')) %>%
-	inner_join(team_games, by = c('Game_ID' = 'Game_ID',
-				      'Opponent_ID_team' = 'Team_ID',
+				      'Opponent_ID' = 'Team_ID',
 				      'Team_ID' = 'Opponent_ID'),
-		   suffix = c('', '_opponent')) %>%
-	mutate(GmSc = game_score(Points,
-				 Twos + Threes,
-				 Two_Attempts + Three_Attempts,
-				 Freethrows,
-				 Freethrow_Attempts,
-				 Offensive_Rebounds,
-				 Deffensive_Rebounds,
-				 Assists,
-				 Steals,
-				 Blocks,
-				 Turnovers,
-				 Fouls),
-		Poss_team = possessions(Twos_team + Threes_team,
+		   suffix = c('_team', '_opponent')) %>%
+	mutate(Poss_team = possessions(Twos_team + Threes_team,
 				        Twos_team + Threes_team,
 				        Freethrow_Attempts_team,
 				        Offensive_Rebounds_team,
@@ -74,7 +58,27 @@ player_season_totals <- dbReadTable(conn, 'player_games') %>%
 					    Deffensive_Rebounds_team,
 					    Turnovers_team),
 		Pace_team = pace(MP_team, Poss_team, Poss_opponent),
-		Pace_opponent = pace(MP_opponent, Poss_opponent, Poss_team),
+		Pace_opponent = pace(MP_opponent, Poss_opponent, Poss_team)
+		)
+
+player_season_totals <- dbReadTable(conn, 'player_games') %>%
+	as_tibble() %>%
+	filter(Season <= 2023, Season != 2011, Player_ID != 970) %>%
+	inner_join(team_and_opponents, by = c('Game_ID' = 'Game_ID',
+					      'Team_ID' = 'Team_ID',
+					      'Opponent_ID' = 'Opponent_ID')) %>%
+	mutate(GmSc = game_score(Points,
+				 Twos + Threes,
+				 Two_Attempts + Three_Attempts,
+				 Freethrows,
+				 Freethrow_Attempts,
+				 Offensive_Rebounds,
+				 Deffensive_Rebounds,
+				 Assists,
+				 Steals,
+				 Blocks,
+				 Turnovers,
+				 Fouls),
 		O_Rating = offensive_rating(Points,
 					    Seconds / 60,
 					    Two_Attempts + Three_Attempts,
@@ -97,7 +101,7 @@ player_season_totals <- dbReadTable(conn, 'player_games') %>%
 					    Assists_team,
 					    Offensive_Rebounds_team,
 					    Turnovers_team,
-					    REB_opponent,
+					    Offensive_Rebounds_opponent + Deffensive_Rebounds_opponent,
 					    Offensive_Rebounds_opponent),
 		D_Rating = defensive_rating(Seconds / 60,
 					    Deffensive_Rebounds,
@@ -141,7 +145,7 @@ player_season_totals <- dbReadTable(conn, 'player_games') %>%
 		Pts = sum(Points),
 		Avg_GmSc = mean(GmSc),
 		Inj_pct = mean(Injured),
-		team_MP = sum(Total_minutes),
+		team_MP = sum(MP_team),
 		team_FG = sum(Twos_team) + sum(Threes_team),
 		team_FGA = sum(Two_Attempts_team) + sum(Three_Attempts_team),
 		team_Twos = sum(Twos_team),
@@ -158,7 +162,7 @@ player_season_totals <- dbReadTable(conn, 'player_games') %>%
 		team_TO = sum(Turnovers_team),
 		team_PF = sum(Fouls_team),
 		team_Pts = sum(Points_team),
-		opp_MP = sum(Total_minutes_opponent),
+		opp_MP = sum(MP_opponent),
 		opp_FG = sum(Twos_opponent) + sum(Threes_opponent),
 		opp_FGA = sum(Two_Attempts_opponent) + sum(Three_Attempts_opponent),
 		opp_Twos = sum(Twos_opponent),
