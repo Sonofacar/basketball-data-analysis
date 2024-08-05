@@ -34,13 +34,26 @@ usage <- function(MP, FGA, FTA, TO, team_MP, team_FGA, team_FTA, team_TO) {
 	return(output)
 }
 
-possessions <- function(FGM, FGA, FTA, O_REB, D_REB, TOV, opp_FGM, opp_FGA, opp_FTA, opp_O_REB, opp_D_REB, opp_TOV) {
+# Number of possessions a team uses in a game.
+possessions <- function(FGA, FTA, O_REB, TOV) {
+	output <- 0.96 * (FGA + TOV + (0.44 * FTA) - O_REB)
+	return(output)
+}
+
+# The number of possessions in a game.
+# this is averaged out between both teams,
+# so there is only need to calculate this
+# once. This trades computing for individual
+# teams for greater accuracy.
+possessions_avg <- function(FGM, FGA, FTA, O_REB, D_REB, TOV, opp_FGM, opp_FGA, opp_FTA, opp_O_REB, opp_D_REB, opp_TOV) {
 	team <- (FGA + 0.4 * FTA - 1.07 * (O_REB / (O_REB + opp_D_REB)) * (FGA - FGM) + TOV)
 	opponent <- (opp_FGA + 0.4 * opp_FTA - 1.07 * (opp_O_REB / (opp_O_REB + D_REB)) * (opp_FGA - opp_FGM) + opp_TOV)
 	output <- 0.5 * (team + opponent)
 	return(output)
 }
 
+# Number of possessions a team uses in a game
+# controlled for the number of minutes played.
 pace <- function(team_MP, team_Poss, opp_Poss) {
 	output <- (240 / team_MP) * (team_Poss + opp_Poss) / 2
 	return(output)
