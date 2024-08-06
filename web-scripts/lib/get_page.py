@@ -35,6 +35,16 @@ class page:
                    "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/24.0 Chrome/117.0.0.0 Mobile Safari/537.3"]
     agent_index = 0
 
+    def redo_for_scorebox(self, href, soup):
+        if 'boxscores' in href:
+            x = soup.find('div', {'class': 'scorebox'})
+            if x is None:
+                return True
+            else:
+                return False
+        else:
+            return False
+
     def to_cache(self, href, soup):
         if len(self.cache) == self.cache_size:
             tmp = list(self.cache.items())
@@ -105,11 +115,16 @@ class page:
         time_string = time.strftime('%H:%M:%S', time.localtime(self.last_time))
         debug.debug(' Request  ', time_string + '  requesting: ' + href)
 
+        # Sometimes boxscore pages don't get requested correctly
+        if self.redo_for_scorebox(href, soup):
+            debug.debug(' Request  ', 'Found an error on boxscore page; new request:\t' + href)
+            return self.get(new_href, cache)
+
         # Sometimes we get a refresh page
         if self.needs_refresh(soup):
             tag = soup.find('meta', {'http-equiv': 'refresh'})
             new_href = tag.attrs['content'].replace('1;URL=', '')
-            debug.debug(' Request  ', "Got a refresh response, new request:\t" + new_href)
+            debug.debug(' Request  ', "Got a refresh response; new request:\t" + new_href)
             return self.get(new_href, cache)
 
         # Just try again before we make a decision
