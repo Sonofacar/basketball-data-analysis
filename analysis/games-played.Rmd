@@ -9,30 +9,30 @@ output: pdf_document
 library(DBI)
 library(tidyverse)
 library(lubridate)
-conn = dbConnect(RSQLite::SQLite(), '../data/bball_db')
+conn = dbConnect(RSQLite::SQLite(), "../data/bball_db")
 
-birthdays <- dbReadTable(conn, 'player_info') %>%
+birthdays <- dbReadTable(conn, "player_info") %>%
 	as_tibble() %>%
 	mutate(Birthday = mdy(Birthday)
 	) %>%
 	select(Player_ID, Birthday)
 
-season_start <- dbReadTable(conn, 'game_info') %>%
+season_start <- dbReadTable(conn, "game_info") %>%
 	as_tibble() %>%
 	mutate(Date = mdy(Date)) %>%
 	group_by(Season) %>%
 	summarize(Start_Date = first(Date)) %>%
 	select(Season, Start_Date)
 
-team_games <- dbReadTable(conn, 'team_games') %>%
+team_games <- dbReadTable(conn, "team_games") %>%
 	rename(MP = Total_minutes) %>%
 	as_tibble()
 
 team_and_opponents <- team_games %>%
-	inner_join(team_games, by = c('Game_ID' = 'Game_ID',
-				      'Opponent_ID' = 'Team_ID',
-				      'Team_ID' = 'Opponent_ID'),
-		   suffix = c('_team', '_opponent')) %>%
+	inner_join(team_games, by = c("Game_ID" = "Game_ID",
+				      "Opponent_ID" = "Team_ID",
+				      "Team_ID" = "Opponent_ID"),
+		   suffix = c("_team", "_opponent")) %>%
 	mutate(Poss_team = possessions(Twos_team + Threes_team,
 				        Twos_team + Threes_team,
 				        Freethrow_Attempts_team,
@@ -61,12 +61,12 @@ team_and_opponents <- team_games %>%
 		Pace_opponent = pace(MP_opponent, Poss_opponent, Poss_team)
 		)
 
-player_season_totals <- dbReadTable(conn, 'player_games') %>%
+player_season_totals <- dbReadTable(conn, "player_games") %>%
 	as_tibble() %>%
 	filter(Season <= 2023, Season != 2011, Player_ID != 970) %>%
-	inner_join(team_and_opponents, by = c('Game_ID' = 'Game_ID',
-					      'Team_ID' = 'Team_ID',
-					      'Opponent_ID' = 'Opponent_ID')) %>%
+	inner_join(team_and_opponents, by = c("Game_ID" = "Game_ID",
+					      "Team_ID" = "Team_ID",
+					      "Opponent_ID" = "Opponent_ID")) %>%
 	mutate(GmSc = game_score(Points,
 				 Twos + Threes,
 				 Two_Attempts + Three_Attempts,
@@ -195,8 +195,8 @@ player_season_totals <- dbReadTable(conn, 'player_games') %>%
 		D_W_shares = ,
 		PIE = ,
 	) %>%
-	inner_join(birthdays, by = c('Player_ID' = 'Player_ID')) %>%
-	inner_join(season_start, by = c('Season' = 'Season')) %>%
+	inner_join(birthdays, by = c("Player_ID" = "Player_ID")) %>%
+	inner_join(season_start, by = c("Season" = "Season")) %>%
 	mutate(Age = floor(interval(Birthday, Start_Date) / years(1)))
 ```
 
@@ -205,12 +205,12 @@ player_season_totals <- dbReadTable(conn, 'player_games') %>%
 # Explanatory variables I want to grab:
 # - Age (at beginning of season)
 # - usage
-# - Last year's touches
-# - Last year's team pace
-# - Last year's minutes per game
-# - Last 2 years' minutes per game
-# - Last 3 years' games played %
-# - Last 5 years' games played %
+# - Last year"s touches
+# - Last year"s team pace
+# - Last year"s minutes per game
+# - Last 2 years" minutes per game
+# - Last 3 years" games played %
+# - Last 5 years" games played %
 # - Career proportion of games injured
 # - Offensive Rating
 # - Defensive Rating
