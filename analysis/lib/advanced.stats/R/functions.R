@@ -35,9 +35,14 @@ usage <- function(MP, FGA, FTA, TO, team_MP, team_FGA, team_FTA, team_TO) {
 }
 
 possessions <- function(FGM, FGA, FTA, O_REB, D_REB, TOV, opp_FGM, opp_FGA, opp_FTA, opp_O_REB, opp_D_REB, opp_TOV) {
-	team <- (FGA + 0.4 * FTA - 1.07 * (O_REB / (O_REB + opp_D_REB)) * (FGA - FGM) + TOV)
-	opponent <- (opp_FGA + 0.4 * opp_FTA - 1.07 * (opp_O_REB / (opp_O_REB + D_REB)) * (opp_FGA - opp_FGM) + opp_TOV)
+	team <- FGA + 0.4 * FTA - 1.07 * (O_REB / (O_REB + opp_D_REB)) * (FGA - FGM) + TOV
+	opponent <- opp_FGA + 0.4 * opp_FTA - 1.07 * (opp_O_REB / (opp_O_REB + D_REB)) * (opp_FGA - opp_FGM) + opp_TOV
 	output <- 0.5 * (team + opponent)
+	return(output)
+}
+
+possessions_basic <- function(FGA, FTA, O_REB, TOV) {
+	output <- FGA + TOV + 0.44*FTA - O_REB
 	return(output)
 }
 
@@ -80,8 +85,8 @@ rebound_pcent <- function(MP, REB, team_MP, team_REB, opp_REB) {
 	return(output)
 }
 
-offensive_rating <- function(Pts, MP, FGA, FGM, Threes, ThreePA, FTA,
-			     FTM, AST, O_REB, TOV, team_Pts, team_MP,
+offensive_rating <- function(Pts, MP, FGM, FGA, Threes, ThreePA, FTM,
+			     FTA, AST, O_REB, TOV, team_Pts, team_MP,
 			     team_FGM, team_FGA, team_Threes, team_ThreePA,
 			     team_FTM, team_FTA, team_AST, team_O_REB,
 			     team_TOV, opp_REB, opp_O_REB) {
@@ -207,13 +212,13 @@ win_score <- function(Pts, FGA, FTA, REB, STL, AST, BLK, TOV, PF) {
 }
 
 player_impact_estimate <- function(Pts, FGM, FGA, FTM, FTA, AST, STL,
-				   BLK, D_REB, O_REB, TO, PF, team_Pts,
-				   team_FGA, team_FGM, team_FTA, team_FTM,
-				   team_AST, team_STL, team_BLK, team_D_REB,
-				   team_O_REB, team_TO, team_PF) {
+				   BLK, D_REB, O_REB, TO, PF, game_Pts,
+				   game_FGM, game_FGA, game_FTM, game_FTA,
+				   game_AST, game_STL, game_BLK, game_D_REB,
+				   game_O_REB, game_TO, game_PF) {
 	numerator <- Pts + FGM + FTM - FGA - FTA + D_REB + O_REB / 2 + AST + STL + BLK / 2 - PF - TO
-	denominator <- (team_Pts + team_FGM + team_FTM - team_FGA - team_FTA + team_D_REB +
-		team_O_REB / 2 + team_AST + team_STL + team_BLK / 2 - team_PF - team_TO)
+	denominator <- (game_Pts + game_FGM + game_FTM - game_FGA - game_FTA + game_D_REB +
+		game_O_REB / 2 + game_AST + game_STL + game_BLK / 2 - game_PF - game_TO)
 	output <- numerator / denominator
 	return(output)
 }
