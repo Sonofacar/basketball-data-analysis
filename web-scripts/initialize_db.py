@@ -75,6 +75,7 @@ FOREIGN KEY(Coach_ID) REFERENCES coaches(Coach_ID)
 
 team_games = '''CREATE TABLE IF NOT EXISTS team_games(
 Total_minutes INTEGER CHECK (Total_minutes >= 0),
+Possessions INTEGER CHECK (Possessions >= 0),
 Threes INTEGER NOT NULL DEFAULT 0 CHECK (Threes >= 0),
 Three_Attempts INTEGER NOT NULL DEFAULT 0 CHECK (Three_Attempts >= 0),
 Twos INTEGER NOT NULL DEFAULT 0 CHECK (Twos >= 0),
@@ -132,6 +133,7 @@ FOREIGN KEY(Opponent_ID) REFERENCES team_info(Team_ID)
 
 team_games_playoffs = '''CREATE TABLE IF NOT EXISTS team_games_playoffs(
 Total_minutes INTEGER CHECK (Total_minutes >= 0),
+Possessions INTEGER CHECK (Possessions >= 0),
 Threes INTEGER NOT NULL DEFAULT 0 CHECK (Threes >= 0),
 Three_Attempts INTEGER NOT NULL DEFAULT 0 CHECK (Three_Attempts >= 0),
 Twos INTEGER NOT NULL DEFAULT 0 CHECK (Twos >= 0),

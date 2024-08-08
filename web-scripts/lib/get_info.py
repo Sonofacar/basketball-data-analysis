@@ -606,6 +606,12 @@ class game_info(debug):
                             'AST', 'STL', 'BLK', 'TOV', 'PF', 'PTS', 'GmSc',
                             'PM']
 
+        self.tmp_columns_adv = ['Name', 'MP', 'TS_pcent', 'eFG_pcent',
+                                '3PAr', 'FTr', 'ORB_pcent', 'DRB_pcent',
+                                'TRB_pcent', 'AST_pcent', 'STL_pcent',
+                                'BLK_pcent', 'TOV_pcent', 'USG_pcent',
+                                'ORtg', 'DRtg', 'BPM']
+
         self.empty_df = pandas.DataFrame({'Name': [],
                                           'MP': [],
                                           'FG': [],
@@ -894,6 +900,51 @@ class game_data(game_info):
         output['href'] = output['Name'].map(self.Injured_dict)
         return output
 
+    def get_O_rating(self, raw_html):
+        tmp_table = pandas.read_html(StringIO(str(raw_html)))[0]
+        tmp_table.columns = self.tmp_columns_adv
+        self.adv_table = tmp_table
+
+        try:
+            output = float(tmp_table.loc[tmp_table.Name == 'Team Totals', 'ORtg'])
+        except:
+            output = 0
+
+        return output
+
+    def get_possessions(self, Points):
+        using = []
+        points = []
+
+        try:
+            tmp = self.Home_ORtg
+        except:
+            tmp = 0
+        else:
+            if tmp != 0:
+                using.append(tmp)
+                points.append(Points[1])
+
+        try:
+            tmp = self.Away_ORtg
+        except:
+            tmp = 0
+        else:
+            if tmp != 0:
+                using.append(tmp)
+                points.append(Points[0])
+
+        if len(using) == 2:
+            tmp = [100 * points[i] / using[i] for i in range(len(using))]
+            output = round(sum(tmp) / len(tmp))
+        elif len(using) == 1:
+            tmp = 100 * points[0] / using[0]
+            output = tmp
+        else:
+            output = 0
+
+        return output
+
     def table_iteration(self, raw_html, injured_table, total_iters, iter, Home, Win, Team_ID, Opponent_ID):
         class iteration:
             advanced_table = int((total_iters / 2) - 1)
@@ -908,8 +959,16 @@ class game_data(game_info):
             case 1 | 2 | 4 | 5:
                 Iteration_type = 'Quarter'
 
-            # Halves and advanced stats
-            case 3 | 6 | iteration.advanced_table:
+            # Halves
+            case 3 | 6:
+                return 1
+
+            # Advanced Stats
+            case iteration.advanced_table:
+                if Home == 1:
+                    self.Home_ORtg = self.get_O_rating(raw_html)
+                else:
+                    self.Away_ORtg = self.get_O_rating(raw_html)
                 return 1
 
             # Overtimes
@@ -1089,7 +1148,9 @@ class game_data(game_info):
     def team_data(self):
         Teams = [self.home_team_name(), self.away_team_name()]
         tmp_table = self.total_game[self.total_game.Name.str.contains('|'.join(Teams))]
+        Possessions = self.get_possessions(list(tmp_table['PTS'].astype(int).abs()))
         output = {'Total_Minutes': self.replace(tmp_table['MP'], '0').astype(int).abs(),
+                  'Possessions': Possessions,
                   'Threes': tmp_table['3P'].astype(int).abs(),
                   'Three_Attempts': tmp_table['3PA'].astype(int).abs(),
                   'Twos': tmp_table['FG'].astype(int).abs(),
