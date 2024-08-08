@@ -15,8 +15,13 @@ class debug:
             raise TypeError
 
         output = 0
-        url = soup.find('link', {'rel': 'canonical'}).attrs['href']
-        href = url.replace('https://www.basketball-reference.com', '')
+
+        try:
+            url = soup.find('link', {'rel': 'canonical'}).attrs['href']
+            href = url.replace('https://www.basketball-reference.com', '')
+        except:
+            href = 'This comes from the most recent page that was requested.'
+
         print("[   Error    ]:\t" + location + "(" + field + "): Could not fill the field.\t" + href)
         if info != '':
             print("\t\tCONTEXT: " + info)
