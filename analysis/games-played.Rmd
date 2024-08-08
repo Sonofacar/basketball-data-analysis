@@ -125,7 +125,7 @@ player_season_totals <- dbReadTable(conn, "player_games") %>%
 				 Blocks,
 				 Turnovers,
 				 Fouls),
-		O_Rating = offensive_rating(Points,
+	       O_Rating = offensive_rating(Points,
 					    Seconds / 60,
 					    Two_Attempts + Three_Attempts,
 					    Twos + Threes,
@@ -149,7 +149,7 @@ player_season_totals <- dbReadTable(conn, "player_games") %>%
 					    Turnovers_team,
 					    Offensive_Rebounds_opponent + Deffensive_Rebounds_opponent,
 					    Offensive_Rebounds_opponent),
-		D_Rating = defensive_rating(Seconds / 60,
+	       D_Rating = defensive_rating(Seconds / 60,
 					    Deffensive_Rebounds,
 					    Steals,
 					    Blocks,
@@ -169,11 +169,11 @@ player_season_totals <- dbReadTable(conn, "player_games") %>%
 					    Offensive_Rebounds_opponent,
 					    Deffensive_Rebounds_opponent,
 					    Turnovers_opponent),
-	        PProd = points_produced(Two_Attempts + Three_Attempts,
+	       PProd = points_produced(Two_Attempts + Three_Attempts,
 					Freethrow_Attempts,
 					Turnovers,
 					O_Rating),
-		PIE = player_impact_estimate(Points,
+	       PIE = player_impact_estimate(Points,
 					     Twos + Threes,
 					     Two_Attempts + Three_Attempts,
 					     Freethrows,
@@ -200,7 +200,7 @@ player_season_totals <- dbReadTable(conn, "player_games") %>%
 					     Turnovers_team + Turnovers_opponent,
 					     Fouls_team + Fouls_opponent
 					     )
-		) %>%
+	       ) %>%
 	group_by(Player_ID, Season) %>%
 	summarize(MP = sum(Seconds) / 60,
 		  Games = n(),
