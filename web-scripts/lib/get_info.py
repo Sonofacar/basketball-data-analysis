@@ -662,6 +662,13 @@ class game_info(debug):
         self.Away_Team_Name = teams[0].text
         self.Away_Team_href = teams[0].attrs['href']
 
+        self.Attendance = 0
+        self.Duration = 0
+        self.Referee_Names = ''
+        self.Referee_hrefs = ''
+        self.Injured = []
+        self.Injured_dict = {}
+
         self.heading = self.soup.select('h1')[0].text
 
         for line in self.soup.select('#content > div')[-2].find_all('div'):
