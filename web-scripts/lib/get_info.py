@@ -303,6 +303,8 @@ class team_info(debug):
         self.franchise_soup = franchise_soup
         self.soup = soup
         self.url = self.soup.find('link', {'rel': 'canonical'}).attrs['href']
+        self.Coach_ID = 0 
+        self.Executive_ID = 0
 
     @debug.error_wrap('team_info', 'get_hrefs', None, info = 'May affect linking up to coach and executive ids.')
     def get_hrefs(self):
@@ -391,8 +393,7 @@ class team_info(debug):
         return self.Coach_href
 
     def set_coach_id(self, In):
-        self.co_id = In
-        self.Coach_ID = self.co_id
+        self.Coach_ID = In 
         return self.Coach_ID
 
     @debug.error_wrap('team_info', 'coach_id', int)
@@ -422,6 +423,13 @@ class season_info(debug):
 
     def __init__(self, soup):
         self.soup = soup
+        self.Champion = 0
+        self.Finals_MVP = 0
+        self.MVP = 0
+        self.DPOY = 0
+        self.MIP = 0
+        self.SixMOTY = 0
+        self.ROTY = 0
 
     @debug.error_wrap('season_info', 'header', None, info = 'This will affect the champion team.')
     def header(self):
@@ -586,6 +594,7 @@ class game_info(debug):
         self.Duration = 0
         self.Injured = []
         self.Injured_dict = {}
+        self.Referee_IDs = [0] * 3
 
         self.tmp_columns = ['Name', 'MP', 'FG', 'FGA', 'FGp', '3P', '3PA',
                             '3Pp', 'FT', 'FTA', 'FTp', 'ORB', 'DRB', 'TRB',
@@ -789,7 +798,6 @@ class game_info(debug):
         return self.Referee_hrefs
 
     def set_referee_ids(self, In):
-        self.Referee_IDs = [0] * 3
         for i in range(len(In)):
             try:
                 self.Referee_IDs[i] = In[i]
