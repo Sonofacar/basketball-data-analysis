@@ -606,12 +606,6 @@ class game_info(debug):
                             'AST', 'STL', 'BLK', 'TOV', 'PF', 'PTS', 'GmSc',
                             'PM']
 
-        self.tmp_columns_adv = ['Name', 'MP', 'TS_pcent', 'eFG_pcent',
-                                '3PAr', 'FTr', 'ORB_pcent', 'DRB_pcent',
-                                'TRB_pcent', 'AST_pcent', 'STL_pcent',
-                                'BLK_pcent', 'TOV_pcent', 'USG_pcent',
-                                'ORtg', 'DRtg', 'BPM']
-
         self.empty_df = pandas.DataFrame({'Name': [],
                                           'MP': [],
                                           'FG': [],
@@ -746,6 +740,20 @@ class game_info(debug):
             heading = self.heading
 
         if 'In-Season' in heading:
+            output = True
+        else:
+            output = False
+        return output
+
+    @debug.error_wrap('game_info', 'play_in', bool, info = 'As said previously, Not sure what game type it is; regular season is assumed.')
+    def play_in(self):
+        try:
+            heading = self.heading
+        except:
+            self.game_setup()
+            heading = self.heading
+
+        if 'Play-In Game' in heading:
             output = True
         else:
             output = False
@@ -902,11 +910,10 @@ class game_data(game_info):
 
     def get_O_rating(self, raw_html):
         tmp_table = pandas.read_html(StringIO(str(raw_html)))[0]
-        tmp_table.columns = self.tmp_columns_adv
         self.adv_table = tmp_table
 
         try:
-            output = float(tmp_table.loc[tmp_table.Name == 'Team Totals', 'ORtg'])
+            output = float(tmp_table.iloc[-1, 14])
         except:
             output = 0
 

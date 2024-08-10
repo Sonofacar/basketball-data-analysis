@@ -323,7 +323,7 @@ def get_game_data(page_obj, href, counter, id_cache_dict):
             write_to_sql('referee_info', tmp)
 
     # prev
-    if game.playoffs():
+    if game.playoffs() or game.play_in():
         db = retrieve_from_sql('playoff_game_info')
     else:
         db = retrieve_from_sql('game_info')

@@ -57,7 +57,7 @@ for i in seasons:
                 matches = lib.find_remaining_players(page, remaining, id_cache)
                 game.apply_matches(matches)
 
-            if game.playoffs():
+            if game.playoffs() or game.play_in():
                 lib.write_to_sql('playoff_game_info', pandas.DataFrame(game.output_row()))
                 lib.write_to_sql('player_games_playoffs', game.player_data())
                 lib.write_to_sql('player_quarters_playoffs', game.player_data_quarter())
