@@ -42,7 +42,7 @@ possessions <- function(FGM, FGA, FTA, O_REB, D_REB, TOV, opp_FGM, opp_FGA, opp_
 }
 
 possessions_basic <- function(FGA, FTA, O_REB, TOV) {
-	output <- FGA + TOV + 0.44*FTA - O_REB
+	output <- 0.96*(FGA + TOV + 0.44*FTA - O_REB)
 	return(output)
 }
 
@@ -161,7 +161,7 @@ net_points <- function(MP, FGA, FTA, TO, O_rating, D_rating, team_MP, team_Poss)
 	return(output)
 }
 
-offensive_win_shares <- function(Pts_Prod, team_Pace, League_Pace, League_PPP, League_PPG) {
+offensive_win_shares <- function(Pts_Prod, team_Pace, Off_Poss, League_Pace, League_PPP, League_PPG) {
 	# League_PPP is league points per possession
 	Marg_Off <- Pts_Prod - 0.92 * League_PPP * Off_Poss
 	Marg_Pts_per_win <- 0.32 * League_PPG * (team_Pace / League_Pace)
