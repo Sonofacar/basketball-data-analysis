@@ -35,34 +35,14 @@ team_and_opponents <- team_games %>%
 				      "Team_ID" = "Opponent_ID",
 				      "Season" = "Season"),
 		   suffix = c("_team", "_opponent")) %>%
-	mutate(Poss = possessions(Twos_team + Threes_team,
-				  Two_Attempts_team + Three_Attempts_team,
-				  Freethrow_Attempts_team,
-				  Offensive_Rebounds_team,
-				  Deffensive_Rebounds_team,
-				  Turnovers_team,
-				  Twos_opponent + Threes_opponent,
-				  Two_Attempts_opponent + Three_Attempts_opponent,
-				  Freethrow_Attempts_opponent,
-				  Offensive_Rebounds_opponent,
-				  Deffensive_Rebounds_opponent,
-				  Turnovers_opponent),
-	       Poss_team = possessions_basic(Two_Attempts_team + Three_Attempts_team,
-					     Freethrow_Attempts_team,
-					     Offensive_Rebounds_team,
-					     Turnovers_team),
-	       Poss_opponent = possessions_basic(Two_Attempts_opponent + Three_Attempts_opponent,
-						 Freethrow_Attempts_opponent,
-						 Offensive_Rebounds_opponent,
-						 Turnovers_opponent)
-	       )
+	mutate(Pace_team = pace(MP_team, Possessions_team, Possessions_opponent),
+	       Pace_opponent = pace(MP_opponent, Possessions_opponent, Possessions_team))
 
 league <- team_and_opponents %>%
 	group_by(Season) %>%
 	summarize(league_Games = n(),
-		  league_MP_team = sum(MP_team),
-		  league_Field_Goals_team = sum(Field_Goals_team),
-		  league_Field_Goal_Attempts_team = sum(Field_Goal_Attempts_team),
+		  league_MP = sum(MP_team),
+		  league_Possessions_team = sum(Possessions_team),
 		  league_Threes_team = sum(Threes_team),
 		  league_Three_Attempts_team = sum(Three_Attempts_team),
 		  league_Twos_team = sum(Twos_team),
@@ -79,9 +59,8 @@ league <- team_and_opponents %>%
 		  league_Points_team = sum(Points_team),
 		  league_Win_team = mean(Win_team),
 		  league_Home_team = mean(Home_team),
-		  league_MP_opponent = sum(MP_opponent),
-		  league_Field_Goals_opponent = sum(Field_Goals_opponent),
-		  league_Field_Goal_Attempts_opponent = sum(Field_Goal_Attempts_opponent),
+		  league_MP = sum(MP_opponent),
+		  league_Possessions_opponent = sum(Possessions_opponent),
 		  league_Threes_opponent = sum(Threes_opponent),
 		  league_Three_Attempts_opponent = sum(Three_Attempts_opponent),
 		  league_Twos_opponent = sum(Twos_opponent),
@@ -98,22 +77,22 @@ league <- team_and_opponents %>%
 		  league_Points_opponent = sum(Points_opponent),
 		  league_Win_opponent = mean(Win_opponent),
 		  league_Home_opponent = mean(Home_opponent),
-		  league_Poss = sum(Poss),
-		  league_Poss_team = sum(Poss_team),
-		  league_Poss_opponent = sum(Poss_opponent),
 		  league_Pts_per_game = mean(Points_team)
 	) %>%
-	mutate(Pace_league = pace(league_MP_team, league_Poss, league_Poss),
-	       Pts_per_Poss = league_Points_team / league_Poss)
+	mutate(league_Pace = pace(league_MP, league_Possessions_team, league_Possessions_opponent),
+	       league_Pts_per_Poss = league_Points_team / league_Possessions_team)
 
 player_season_totals <- dbReadTable(conn, "player_games") %>%
 	as_tibble() %>%
-	filter(Season <= 2023, Season != 2011, Player_ID != 970) %>%
 	inner_join(team_and_opponents, by = c("Game_ID" = "Game_ID",
 					      "Team_ID" = "Team_ID",
 					      "Opponent_ID" = "Opponent_ID",
 					      "Season" = "Season")) %>%
-	mutate(GmSc = game_score(Points,
+	mutate(Poss = possessions_basic(Two_Attempts + Three_Attempts,
+					Freethrow_Attempts,
+					Offensive_Rebounds,
+					Turnovers),
+	       GmSc = game_score(Points,
 				 Twos + Threes,
 				 Two_Attempts + Three_Attempts,
 				 Freethrows,
@@ -159,7 +138,7 @@ player_season_totals <- dbReadTable(conn, "player_games") %>%
 					    Steals_team,
 					    Blocks_team,
 					    Fouls_team,
-					    Poss_team,
+					    Possessions_team,
 					    Points_opponent,
 					    MP_opponent,
 					    Twos_opponent + Threes_opponent,
@@ -204,6 +183,7 @@ player_season_totals <- dbReadTable(conn, "player_games") %>%
 	group_by(Player_ID, Season) %>%
 	summarize(MP = sum(Seconds) / 60,
 		  Games = n(),
+		  Poss = sum(Poss),
 		  FG = sum(Twos) + sum(Threes),
 		  FGA = sum(Two_Attempts) + sum(Three_Attempts),
 		  Twos = sum(Twos),
@@ -221,8 +201,14 @@ player_season_totals <- dbReadTable(conn, "player_games") %>%
 		  PF = sum(Fouls),
 		  Pts = sum(Points),
 		  Avg_GmSc = mean(GmSc),
+		  Avg_O_Rating = mean(O_Rating),
+		  Avg_D_Rating = mean(D_Rating),
 		  Inj_pct = mean(Injured),
+		  PProd = sum(PProd),
+		  PIE_sum = sum(PIE),
 		  team_MP = sum(MP_team),
+		  team_Poss = sum(Possessions_team),
+		  team_Pace = mean(Pace_team),
 		  team_FG = sum(Twos_team) + sum(Threes_team),
 		  team_FGA = sum(Two_Attempts_team) + sum(Three_Attempts_team),
 		  team_Twos = sum(Twos_team),
@@ -240,6 +226,8 @@ player_season_totals <- dbReadTable(conn, "player_games") %>%
 		  team_PF = sum(Fouls_team),
 		  team_Pts = sum(Points_team),
 		  opp_MP = sum(MP_opponent),
+		  opp_Poss = sum(Possessions_team),
+		  opp_Pace = mean(Pace_opponent),
 		  opp_FG = sum(Twos_opponent) + sum(Threes_opponent),
 		  opp_FGA = sum(Two_Attempts_opponent) + sum(Three_Attempts_opponent),
 		  opp_Twos = sum(Twos_opponent),
@@ -258,23 +246,28 @@ player_season_totals <- dbReadTable(conn, "player_games") %>%
 		  opp_Pts = sum(Points_opponent),
 		  .groups = 'keep'
 	) %>%
+	inner_join(league, by = c('Season')) %>%
 	mutate(Usage = usage(MP, FGA, FTA, TO, team_MP, team_FGA, team_FTA, team_TO),
-	       O_Rating = offensive_rating(Pts, MP, FGA, FGM, Threes, ThreePA, FTA,
-					    FTM, AST, O_REB, TOV, team_Pts, team_MP,
-					    team_FGM, team_FGA, team_Threes, team_ThreePA,
-					    team_FTM, team_FTA, team_AST, team_O_REB,
-					    team_TOV, opp_REB, opp_O_REB),
-	       D_Rating = defensive_rating(MP, D_REB, STL, BLK, PF, team_MP,
-					    team_D_REB, team_STL, team_BLK, team_PF,
-					    team_Poss, opp_Pts, opp_MP, opp_FGM,
-					    opp_FGA, opp_FTM, opp_FTA, opp_O_REB,
-					    opp_D_REB, opp_TOV),
-	       O_W_shares = ,
-	       D_W_shares = 
+	       O_W_shares = offensive_win_shares(PProd,
+						 Poss,
+						 team_Pace,
+						 league_Pace,
+						 league_Pts_per_Poss,
+						 league_Pts_per_game),
+	       D_W_shares = defensive_win_shares(MP,
+						 Avg_D_Rating,
+						 team_MP,
+						 team_Pace,
+						 opp_Poss,
+						 league_Pace,
+						 league_Pts_per_Poss,
+						 league_Pts_per_game),
+	       win_shares = O_W_shares + D_W_shares
 	) %>%
 	inner_join(birthdays, by = c("Player_ID" = "Player_ID")) %>%
 	inner_join(season_start, by = c("Season" = "Season")) %>%
 	mutate(Age = floor(interval(Birthday, Start_Date) / years(1)))
+
 ```
 
 ---
