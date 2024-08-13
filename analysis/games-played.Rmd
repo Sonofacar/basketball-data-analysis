@@ -88,7 +88,8 @@ player_season_totals <- dbReadTable(conn, "player_games") %>%
 					      "Team_ID" = "Team_ID",
 					      "Opponent_ID" = "Opponent_ID",
 					      "Season" = "Season")) %>%
-	mutate(Poss = possessions_basic(Two_Attempts + Three_Attempts,
+	mutate(Played = Seconds > 0,
+	       Poss = possessions_basic(Two_Attempts + Three_Attempts,
 					Freethrow_Attempts,
 					Offensive_Rebounds,
 					Turnovers),
@@ -181,7 +182,9 @@ player_season_totals <- dbReadTable(conn, "player_games") %>%
 	       ) %>%
 	group_by(Player_ID, Season) %>%
 	summarize(MP = sum(Seconds) / 60,
+		  Avg_MP = mean(Seconds / 60),
 		  Games = n(),
+		  Played = sum(Played),
 		  Poss = sum(Poss),
 		  FG = sum(Twos) + sum(Threes),
 		  FGA = sum(Two_Attempts) + sum(Three_Attempts),
@@ -196,7 +199,7 @@ player_season_totals <- dbReadTable(conn, "player_games") %>%
 		  AST = sum(Assists),
 		  STL = sum(Steals),
 		  BLK = sum(Blocks),
-		  TO = sum(Turnovers),
+		  TOV = sum(Turnovers),
 		  PF = sum(Fouls),
 		  Pts = sum(Points),
 		  Avg_GmSc = mean(GmSc),
@@ -246,7 +249,20 @@ player_season_totals <- dbReadTable(conn, "player_games") %>%
 		  .groups = 'keep'
 	) %>%
 	inner_join(league, by = c('Season')) %>%
-	mutate(Usage = usage(MP, FGA, FTA, TO, team_MP, team_FGA, team_FTA, team_TO),
+	mutate(Usage = usage(MP,
+			     FGA,
+			     FTA,
+			     TOV,
+			     team_MP,
+			     team_FGA,
+			     team_FTA,
+			     team_TO),
+	       Touches = touches(FGA,
+				 FTA,
+				 AST,
+				 TOV,
+				 team_FTA,
+				 opp_PF),
 	       O_W_shares = offensive_win_shares(PProd,
 						 Poss,
 						 team_Pace,
@@ -265,7 +281,23 @@ player_season_totals <- dbReadTable(conn, "player_games") %>%
 	) %>%
 	inner_join(birthdays, by = c("Player_ID" = "Player_ID")) %>%
 	inner_join(season_start, by = c("Season" = "Season")) %>%
-	mutate(Age = floor(interval(Birthday, Start_Date) / years(1)))
+	mutate(Age = floor(interval(Birthday, Start_Date) / years(1))) %>%
+	select(Player_ID,
+	       Season,
+	       MP,
+	       Games,
+	       Avg_MP,
+	       Age,
+	       Usage,
+	       Touches,
+	       team_Pace,
+	       Inj_pct,
+	       Avg_O_Rating,
+	       Avg_D_Rating,
+	       O_W_shares,
+	       D_W_shares,
+	       PIE_sum,
+	       Avg_GmSc)
 
 ```
 
