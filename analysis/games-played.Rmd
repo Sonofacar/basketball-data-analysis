@@ -13,7 +13,6 @@ library(devtools)
 load_all('lib/advanced.stats/')
 conn = dbConnect(RSQLite::SQLite(), "../data/bball_db")
 
-birthdays <- dbReadTable(conn, "player_info") %>%
 	as_tibble() %>%
 	mutate(Birthday = mdy(Birthday)) %>%
 	select(Player_ID, Birthday)
@@ -107,12 +106,12 @@ player_season_totals <- dbReadTable(conn, "player_games") %>%
 				 Fouls),
 	       O_Rating = offensive_rating(Points,
 					   Seconds / 60,
-					   Two_Attempts + Three_Attempts,
 					   Twos + Threes,
+					   Two_Attempts + Three_Attempts,
 					   Threes,
 					   ThreePA,
-					   Freethrow_Attempts,
 					   Freethrows,
+					   Freethrow_Attempts,
 					   Assists,
 					   Offensive_Rebounds,
 					   Turnovers,
@@ -127,8 +126,7 @@ player_season_totals <- dbReadTable(conn, "player_games") %>%
 					   Assists_team,
 					   Offensive_Rebounds_team,
 					   Turnovers_team,
-					   Offensive_Rebounds_opponent + Deffensive_Rebounds_opponent,
-					   Offensive_Rebounds_opponent),
+					   Deffensive_Rebounds_opponent),
 	       D_Rating = defensive_rating(Seconds / 60,
 					   Deffensive_Rebounds,
 					   Steals,
