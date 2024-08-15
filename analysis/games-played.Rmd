@@ -347,7 +347,11 @@ dataset <- player_season_totals %>%
 		       Season,
 		       Next_Season_Games),
 		       by = c('Player_ID' = 'Player_ID',
-			      'Season' = 'Season'))
+			      'Season' = 'Season')) %>%
+	select(!c('Two_back',
+		  'Three_back',
+		  'Four_back',
+		  'Five_back'))
 
 ```
 
