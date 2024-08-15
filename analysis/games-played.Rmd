@@ -13,6 +13,7 @@ library(devtools)
 load_all('lib/advanced.stats/')
 conn = dbConnect(RSQLite::SQLite(), "../data/bball_db")
 
+birthdays <- dbReadTable(conn, "player_info") %>%
 	as_tibble() %>%
 	mutate(Birthday = mdy(Birthday)) %>%
 	select(Player_ID, Birthday)
@@ -88,6 +89,14 @@ player_season_totals <- dbReadTable(conn, "player_games") %>%
 					      "Opponent_ID" = "Opponent_ID",
 					      "Season" = "Season")) %>%
 	mutate(Played = Seconds > 0,
+	       Usage = usage(Seconds / 60,
+			     Two_Attempts + Three_Attempts,
+			     Freethrow_Attempts,
+			     Turnovers,
+			     MP_team,
+			     Two_Attempts_team + Three_Attempts_team,
+			     Freethrow_Attempts_team,
+			     Turnovers_team),
 	       Poss = possessions_basic(Two_Attempts + Three_Attempts,
 					Freethrow_Attempts,
 					Offensive_Rebounds,
@@ -104,29 +113,16 @@ player_season_totals <- dbReadTable(conn, "player_games") %>%
 				 Blocks,
 				 Turnovers,
 				 Fouls),
-	       O_Rating = offensive_rating(Points,
-					   Seconds / 60,
-					   Twos + Threes,
-					   Two_Attempts + Three_Attempts,
-					   Threes,
-					   ThreePA,
-					   Freethrows,
-					   Freethrow_Attempts,
-					   Assists,
-					   Offensive_Rebounds,
-					   Turnovers,
-					   Points_team,
-					   MP_team,
-					   Twos_team + Threes_team,
-					   Two_Attempts_team + Three_Attempts_team,
-					   Threes_team,
-					   ThreePA_team,
-					   Freethrows_team,
-					   Freethrow_Attempts_team,
-					   Assists_team,
-					   Offensive_Rebounds_team,
-					   Turnovers_team,
-					   Deffensive_Rebounds_opponent),
+	       pseudo_O_Rating = pseudo_offensive_rating(Twos,
+							Threes,
+							Freethrows,
+							Assists,
+							Offensive_Rebounds,
+							Poss,
+							Twos_team,
+							Threes_team,
+							Freethrows_team,
+							Possessions_team),
 	       D_Rating = defensive_rating(Seconds / 60,
 					   Deffensive_Rebounds,
 					   Steals,
@@ -150,7 +146,7 @@ player_season_totals <- dbReadTable(conn, "player_games") %>%
 	       PProd = points_produced(Two_Attempts + Three_Attempts,
 				       Freethrow_Attempts,
 				       Turnovers,
-				       O_Rating),
+				       pseudo_O_Rating),
 	       PIE = player_impact_estimate(Points,
 					    Twos + Threes,
 					    Two_Attempts + Three_Attempts,
@@ -178,11 +174,11 @@ player_season_totals <- dbReadTable(conn, "player_games") %>%
 					    Turnovers_team + Turnovers_opponent,
 					    Fouls_team + Fouls_opponent)
 	       ) %>%
+	filter(Seconds > 0 | Injured == 1) %>%
 	group_by(Player_ID, Season) %>%
 	summarize(MP = sum(Seconds) / 60,
 		  Avg_MP = mean(Seconds / 60),
-		  Games = n(),
-		  Played = sum(Played),
+		  Games = mean(Played),
 		  Poss = sum(Poss),
 		  FG = sum(Twos) + sum(Threes),
 		  FGA = sum(Two_Attempts) + sum(Three_Attempts),
@@ -200,8 +196,9 @@ player_season_totals <- dbReadTable(conn, "player_games") %>%
 		  TOV = sum(Turnovers),
 		  PF = sum(Fouls),
 		  Pts = sum(Points),
+		  Avg_Usage = mean(Usage),
 		  Avg_GmSc = mean(GmSc),
-		  Avg_O_Rating = mean(O_Rating),
+		  Avg_O_Rating = mean(pseudo_O_Rating),
 		  Avg_D_Rating = mean(D_Rating),
 		  Inj_pct = mean(Injured),
 		  PProd = sum(PProd),
@@ -247,15 +244,7 @@ player_season_totals <- dbReadTable(conn, "player_games") %>%
 		  .groups = 'keep'
 	) %>%
 	inner_join(league, by = c('Season')) %>%
-	mutate(Usage = usage(MP,
-			     FGA,
-			     FTA,
-			     TOV,
-			     team_MP,
-			     team_FGA,
-			     team_FTA,
-			     team_TO),
-	       Touches = touches(FGA,
+	mutate(Touches = touches(FGA,
 				 FTA,
 				 AST,
 				 TOV,
@@ -280,13 +269,14 @@ player_season_totals <- dbReadTable(conn, "player_games") %>%
 	inner_join(birthdays, by = c("Player_ID" = "Player_ID")) %>%
 	inner_join(season_start, by = c("Season" = "Season")) %>%
 	mutate(Age = floor(interval(Birthday, Start_Date) / years(1))) %>%
+	filter(MP > 500 | Inj_pct > 0) %>%
 	select(Player_ID,
 	       Season,
 	       MP,
 	       Games,
 	       Avg_MP,
 	       Age,
-	       Usage,
+	       Avg_Usage,
 	       Touches,
 	       team_Pace,
 	       Inj_pct,
@@ -295,7 +285,82 @@ player_season_totals <- dbReadTable(conn, "player_games") %>%
 	       O_W_shares,
 	       D_W_shares,
 	       PIE_sum,
-	       Avg_GmSc)
+	       Avg_GmSc) %>%
+	mutate(Two_back = Season - 1,
+	       Three_back = Season - 2,
+	       Four_back = Season - 3,
+	       Five_back = Season - 4)
+
+results <- player_season_totals %>%
+	mutate(Next_Season_Games = Games) %>%
+	select(Player_ID, Season, Next_Season_Games)
+
+dataset <- player_season_totals %>%
+	mutate(Season = Season + 1) %>%
+	inner_join(player_season_totals %>%
+		   	select(Season,
+			       Games,
+			       MP,
+			       Avg_MP,
+			       Inj_pct,
+			       PIE_sum,
+			       Avg_GmSc),
+		   by = c('Player_ID' = 'Player_ID',
+			  'Two_back' = 'Season'),
+		   suffix = c('', '_two_back')) %>%
+	inner_join(player_season_totals %>%
+		   	select(Season,
+			       Games,
+			       MP,
+			       Avg_MP,
+			       Inj_pct,
+			       PIE_sum,
+			       Avg_GmSc),
+		   by = c('Player_ID' = 'Player_ID',
+			  'Three_back' = 'Season'),
+		   suffix = c('', '_three_back')) %>%
+	inner_join(player_season_totals %>%
+		   	select(Season,
+			       Games,
+			       MP,
+			       Avg_MP,
+			       Inj_pct,
+			       PIE_sum,
+			       Avg_GmSc),
+		   by = c('Player_ID' = 'Player_ID',
+			  'Four_back' = 'Season'),
+		   suffix = c('', '_four_back')) %>%
+	inner_join(player_season_totals %>%
+		   	select(Season,
+			       Games,
+			       MP,
+			       Avg_MP,
+			       Inj_pct,
+			       PIE_sum,
+			       Avg_GmSc),
+		   by = c('Player_ID' = 'Player_ID',
+			  'Five_back' = 'Season'),
+		   suffix = c('', '_five_back')) %>%
+	inner_join(player_season_totals %>%
+		mutate(Next_Season_Games = Games) %>%
+		select(Player_ID,
+		       Season,
+		       Next_Season_Games),
+		       by = c('Player_ID' = 'Player_ID',
+			      'Season' = 'Season'))
+
+```
+
+```
+
+Names <- dbReadTable(conn, "player_info") %>%
+	as_tibble() %>%
+	select(Player_ID, Name)
+
+player_season_totals %>%
+	inner_join(Names, by = c('Player_ID' = 'Player_ID')) %>%
+	arrange(desc(O_W_shares)) %>%
+	View()
 
 ```
 

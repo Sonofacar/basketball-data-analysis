@@ -30,7 +30,7 @@
 usage <- function(MP, FGA, FTA, TOV, team_MP, team_FGA, team_FTA, team_TO) {
 	numerator <- (FGA + 0.44 * FTA + TOV) * team_MP
 	denominator <- (team_FGA + 0.44 * team_FTA + team_TO) * 5 * MP
-	output <- numerator / denominator
+	output <- ifelse(MP != 0, numerator / denominator, 0)
 	return(output)
 }
 
@@ -42,7 +42,7 @@ possessions <- function(FGM, FGA, FTA, O_REB, D_REB, TOV, opp_FGM, opp_FGA, opp_
 }
 
 possessions_basic <- function(FGA, FTA, O_REB, TOV) {
-	output <- 0.96*(FGA + TOV + 0.44*FTA - O_REB)
+	output <- FGA + TOV + 0.44 * FTA
 	return(output)
 }
 
@@ -85,74 +85,102 @@ rebound_pcent <- function(MP, REB, team_MP, team_REB, opp_REB) {
 	return(output)
 }
 
-offensive_rating <- function(Pts, MP, FGM, FGA, Threes, ThreePA, FTM,
-			     FTA, AST, O_REB, TOV, team_Pts, team_MP,
-			     team_FGM, team_FGA, team_Threes, team_ThreePA,
-			     team_FTM, team_FTA, team_AST, team_O_REB,
-			     team_TOV, opp_D_REB) {
-# prop_FGs "0.409722222222221"
-# prop_ASTs "2.5625"
-# AST_FG_ratio "6.2542372881356"
-# qAST "5.44075211864408"
-# not_FT "0.409090909090909"
-# FGM_part "-0.564405575885989"
-# AST_part "0"
-# FT_pcent "0"
-# FT_part "0"
-# team_FT_pcent "0.736842105263158"
-# team_scoring_poss "45.0736842105263"
-# team_play_pcent "0.34779077322937"
-# team_O_REB_pcent "0.217391304347826"
-# team_O_REB_weight "0.657499189599577"
-# O_REB_part "0"
-# ScPoss "-0.535771609161412"
-# FGMxPoss "4.60434782608696"
-# FTxPoss "0"
-# TotPoss "5.06857621692555"
-# PProd_FGM_part "-1.24169226694918"
-# PProd_AST_part "0"
-# PProd_O_REB_part "0"
-# PProd "-1.17869754015511"
+##### offensive_rating <- function(Pts, MP, FGM, FGA, Threes, ThreePA, FTM,
+##### 			     FTA, AST, O_REB, TOV, team_Pts, team_MP,
+##### 			     team_FGM, team_FGA, team_Threes, team_ThreePA,
+##### 			     team_FTM, team_FTA, team_AST, team_O_REB,
+##### 			     team_TOV, opp_D_REB) {
+##### 	prop_FGs <- (team_FGM / team_MP) * MP * 5 - FGM
+##### 	prop_ASTs <- (team_AST / team_MP) * MP * 5 - AST
+##### 	AST_FG_ratio <- ifelse(prop_FGs != 0, prop_ASTs / prop_FGs, 0)
+##### 	qAST <- ((MP / (team_MP / 5)) * (1.14 * ((team_AST - AST) / team_FGM))) +
+##### 		(AST_FG_ratio * (1 - (MP / (team_MP / 5))))
+##### 	not_FT <- ifelse(FGA != 0, (Pts - FTM) / (2 * FGA), 0)
+##### 	FGM_part <- FGM * (1 - 0.5 * (not_FT) * qAST)
+##### 	AST_part <- 0.5 * (((team_Pts - team_FTM) - (Pts - FTM)) / (2 * (team_FGA - FGA))) * AST
+##### 	FT_pcent <- ifelse(FTA != 0, FTM / FTA, 0)
+##### 	FT_part <- (1 - (1 - (FT_pcent))^2) * 0.4 * FTA
+##### 	team_FT_pcent <- ifelse(team_FTA != 0, team_FTM / team_FTA, 0)
+##### 	team_scoring_poss <- team_FGM + (1 - (1 - (team_FT_pcent))^2) * team_FTA * 0.4
+##### 	team_play_pcent <- team_scoring_poss / (team_FGA + team_FTA * 0.4 + team_TOV)
+##### 	team_O_REB_pcent <- team_O_REB / (team_O_REB + opp_D_REB)
+##### 	team_O_REB_weight <- ((1 - team_O_REB_pcent) * team_play_pcent) /
+##### 		((1 - team_O_REB_pcent) * team_play_pcent + team_O_REB_pcent * (1 - team_play_pcent))
+##### 	O_REB_part <- O_REB * team_O_REB_weight * team_play_pcent
+##### 	ScPoss <- (FGM_part + AST_part + FT_part) *
+##### 		(1 - (team_O_REB / team_scoring_poss) * team_O_REB_weight * team_play_pcent) + O_REB_part
+##### 
+##### 	FGMxPoss <- (FGA - FGM) * (1 - 1.07 * team_O_REB_pcent)
+##### 
+##### 	FTxPoss <- ((1 - (FT_pcent))^2) * 0.4 * FTA
+##### 
+##### 	TotPoss <- ScPoss + FGMxPoss + FTxPoss + TOV
+##### 
+##### 	PProd_FGM_part <- 2 * (FGM + 0.5 * Threes) * (1 - 0.5 * not_FT * qAST)
+##### 	PProd_AST_part <- 2 * ((team_FGM - FGM + 0.5 * (team_Threes - Threes)) / (team_FGM - FGM)) *
+##### 		0.5 * (((team_Pts - team_FTM) - (Pts - FTM)) / (2 * (team_FGA - FGA))) * AST
+##### 	PProd_O_REB_part <- O_REB * team_O_REB_weight * team_play_pcent *
+##### 		(team_Pts / (team_FGM + (1 - (1 - (team_FT_pcent))^2) * 0.4 * team_FTA))
+##### 
+##### 	PProd <- (PProd_FGM_part + PProd_AST_part + FTM) *
+##### 		(1 - (team_O_REB / team_scoring_poss) * team_O_REB_weight * team_play_pcent) + PProd_O_REB_part
+##### 
+##### 	pcent <- ifelse(TotPoss != 0, PProd / TotPoss, 0)
+##### 	ORtg <- 100 * (pcent)
+##### 
+##### 	return(ORtg)
+##### }
+##### 
+##### o_rating_func <- function(Pts, MP, FGM, FGA, Threes, ThreePA, FTM,
+##### 			  FTA, AST, O_REB, TOV, team_Pts, team_MP,
+##### 			  team_FGM, team_FGA, team_Threes, team_ThreePA,
+##### 			  team_FTM, team_FTA, team_AST, team_O_REB,
+##### 			  team_TOV, opp_D_REB) {
+##### 	team_FT_pcent <- ifelse(team_FTA != 0, team_FTM / team_FTA, 0)
+##### 	FTxPoss <- (1 - team_FT_pcent)^2 * 0.4 * team_FTA
+##### 	ScPoss_team <- team_FGM + FTxPoss
+##### 	PosPoss <- ScPoss_team / (team_FGA + 0.4 * team_FTA + team_TOV)
+##### 	OR_pcent <- team_O_REB / (team_O_REB + opp_D_REB)
+##### 	ORW_team <- (1 - OR_pcent) * PosPoss / ((1- OR_pcent) * PosPoss + (1 - PosPoss) * OR_pcent)
+##### 	coef <- 1 - (team_O_REB / ScPoss_team) * ORW_team * PosPoss
+##### 	prop_FGs <- (team_FGM / team_MP) * MP * 5 - FGM
+##### 	prop_ASTs <- (team_AST / team_MP) * MP * 5 - AST
+##### 	Ast_FG_ratio <- ifelse(prop_FGs != 0, prop_ASTs / prop_FGs, 0)
+##### 	Ast_coef <- (5 * MP / team_MP) *
+##### 		1.14 * (team_AST - AST) / team_FGM +
+##### 		(1 - (5 * MP / team_MP)) * Ast_FG_ratio
+##### 	Pts_from_FG <- ifelse(FGA != 0, (Pts - FTM) / (2 * FGA), 0)
+##### 	ScPossFG <- FGM * (1 - 0.5 * Pts_from_FG * Ast_coef)
+##### 	nonFT_contrib <- ((team_Pts - team_FTM) - (Pts - FTM)) /
+##### 		(2 * (team_FGA - FGA))
+##### 	ScPossAst <- 0.5 * nonFT_contrib * AST
+##### 	ScPossFT <- (1 - (1 - team_FT_pcent)^2) * 0.4 * team_FTA
+##### 	ScPossOR <- O_REB * ORW_team * PosPoss
+##### 	FGxPoss <- (FGA - FGM) * (1 - 1.07 * OR_pcent)
+##### 	PossTot <- (ScPossFG + ScPossAst + ScPossFT) * coef +
+##### 		ScPossOR + FGxPoss + FTxPoss + TOV
+##### 
+##### 	PtsGenFG <- 2 * (FGM + 0.5 * Threes) *
+##### 		(1 - 0.5 * (Pts_from_FG) * Ast_coef)
+##### 	FG_contrib <- ((team_FGM - FGM) + 0.5 * (team_Threes - Threes)) / 
+##### 		(team_FGM - FGM)
+##### 	PtsGenAst <- FG_contrib * nonFT_contrib * AST
+##### 	Pts_coef <- team_Pts / (team_FGM + ScPossFT)
+##### 	PtsGenOR <- team_O_REB * ORW_team * PosPoss * Pts_coef
+##### 	PtsGen <- (PtsGenFG + PtsGenAst + FTM) * coef + PtsGenOR
+##### 	output <- 100 * (PtsGen / PossTot)
+##### 	output <- ifelse(MP != 0, output, 0)
+##### 	return(output)
+##### }
 
-	prop_FGs <- (team_FGM / team_MP) * MP * 5 - FGM
-	prop_ASTs <- (team_AST / team_MP) * MP * 5 - AST
-	AST_FG_ratio <- ifelse(prop_FGs != 0, prop_ASTs / prop_FGs, 0)
-	qAST <- ((MP / (team_MP / 5)) * (1.14 * ((team_AST - AST) / team_FGM))) +
-		(AST_FG_ratio * (1 - (MP / (team_MP / 5))))
-	not_FT <- ifelse(FGA != 0, (Pts - FTM) / (2 * FGA), 0)
-	FGM_part <- FGM * (1 - 0.5 * (not_FT) * qAST)
-	AST_part <- 0.5 * (((team_Pts - team_FTM) - (Pts - FTM)) / (2 * (team_FGA - FGA))) * AST
-	FT_pcent <- ifelse(FTA != 0, FTM / FTA, 0)
-	FT_part <- (1 - (1 - (FT_pcent))^2) * 0.4 * FTA
-	team_FT_pcent <- ifelse(team_FTA != 0, team_FTM / team_FTA, 0)
-	team_scoring_poss <- team_FGM + (1 - (1 - (team_FT_pcent))^2) * team_FTA * 0.4
-	team_play_pcent <- team_scoring_poss / (team_FGA + team_FTA * 0.4 + team_TOV)
-	team_O_REB_pcent <- team_O_REB / (team_O_REB + opp_D_REB)
-	team_O_REB_weight <- ((1 - team_O_REB_pcent) * team_play_pcent) /
-		((1 - team_O_REB_pcent) * team_play_pcent + team_O_REB_pcent * (1 - team_play_pcent))
-	O_REB_part <- O_REB * team_O_REB_weight * team_play_pcent
-	ScPoss <- (FGM_part + AST_part + FT_part) *
-		(1 - (team_O_REB / team_scoring_poss) * team_O_REB_weight * team_play_pcent) + O_REB_part
-
-	FGMxPoss <- (FGA - FGM) * (1 - 1.07 * team_O_REB_pcent)
-
-	FTxPoss <- ((1 - (FT_pcent))^2) * 0.4 * FTA
-
-	TotPoss <- ScPoss + FGMxPoss + FTxPoss + TOV
-
-	PProd_FGM_part <- 2 * (FGM + 0.5 * Threes) * (1 - 0.5 * not_FT * qAST)
-	PProd_AST_part <- 2 * ((team_FGM - FGM + 0.5 * (team_Threes - Threes)) / (team_FGM - FGM)) *
-		0.5 * (((team_Pts - team_FTM) - (Pts - FTM)) / (2 * (team_FGA - FGA))) * AST
-	PProd_O_REB_part <- O_REB * team_O_REB_weight * team_play_pcent *
-		(team_Pts / (team_FGM + (1 - (1 - (team_FT_pcent))^2) * 0.4 * team_FTA))
-
-	PProd <- (PProd_FGM_part + PProd_AST_part + FTM) *
-		(1 - (team_O_REB / team_scoring_poss) * team_O_REB_weight * team_play_pcent) + PProd_O_REB_part
-
-	pcent <- ifelse(TotPoss != 0, PProd / TotPoss, 0)
-	ORtg <- 100 * (pcent)
-
-	return(ORtg)
+pseudo_offensive_rating <- function(Twos, Threes, FTM, AST, O_REB, Poss,
+				    team_Twos, team_Threes, team_FTM, team_Poss) {
+	Pts <- FTM + 2 * Twos + 3 * Threes
+	Poss_remaining <- team_Poss - Poss
+	Pts_remaining <- team_FTM + 2 * team_Twos + 3 * team_Threes - Pts
+	Alt_scoring <- (AST + O_REB) * (Pts_remaining / Poss_remaining)
+	output <- ifelse(Poss > 0, 100 * (Pts + Alt_scoring) / (Poss + AST + O_REB), 0)
+	return(output)
 }
 
 defensive_rating <- function(MP, D_REB, STL, BLK, PF, team_MP,
