@@ -12,7 +12,18 @@ library(lubridate)
 library(devtools)
 load_all('lib/advanced.stats/')
 conn = dbConnect(RSQLite::SQLite(), "../data/bball_db")
+
+logit <- function(prob) {
+	output <- log(prob / (1 - prob))
+	return(output)
+}
+expit <- function(odds) {
+	output <- exp(odds) / (1 + exp(odds))
+	return(output)
+}
 ```
+
+# Introduction
 
 In an effort to make a simple and useful tool for predicting performance among NBA players,
 I start with this analysis of the number of games played in a season given past performance.
@@ -360,6 +371,8 @@ As it stands, this only leaves me with `r dim(data)[0]` data points.
 The aggregation and joining of data spanning multiple years tremendously reduces the data available,
 but it is still a very large number given the subjects of interest in a given year might only add up to `r 12*13`.
 
+## Data explanation
+
 I will assume a basic understanding of advanced basketball statistics,
 but for the most part, even that's not needed for most of the data that will likely be useful.
 Keep in mind too that if not otherwise stated,
@@ -397,3 +410,16 @@ Here is a simple explanation of each piece of data I have available to me for th
 | Avg_GmSc_three_back | Average player game score three seasons ago                                     |
 | Next_Season_Games   | Proportion of games played in the season of interest                            |
 
+# Assumptions
+
+```{r linearity}
+
+```
+
+```{r residuals}
+
+```
+
+```{r multicollinearity}
+
+```
