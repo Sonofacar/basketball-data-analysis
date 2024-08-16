@@ -23,6 +23,7 @@ season_start <- dbReadTable(conn, "game_info") %>%
 	mutate(Date = mdy(Date)) %>%
 	group_by(Season) %>%
 	summarize(Start_Date = first(Date)) %>%
+	ungroup() %>%
 	select(Season, Start_Date)
 
 team_games <- dbReadTable(conn, "team_games") %>%
@@ -79,6 +80,7 @@ league <- team_and_opponents %>%
 		  league_Home_opponent = mean(Home_opponent),
 		  league_Pts_per_game = mean(Points_team)
 	) %>%
+	ungroup() %>%
 	mutate(league_Pace = pace(league_MP, league_Possessions_team, league_Possessions_opponent),
 	       league_Pts_per_Poss = league_Points_team / league_Possessions_team)
 
@@ -243,6 +245,7 @@ player_season_totals <- dbReadTable(conn, "player_games") %>%
 		  opp_Pts = sum(Points_opponent),
 		  .groups = 'keep'
 	) %>%
+	ungroup() %>%
 	inner_join(league, by = c('Season')) %>%
 	mutate(Touches = touches(FGA,
 				 FTA,
@@ -298,7 +301,8 @@ results <- player_season_totals %>%
 dataset <- player_season_totals %>%
 	mutate(Season = Season + 1) %>%
 	inner_join(player_season_totals %>%
-		   	select(Season,
+		   	select(Player_ID,
+			       Season,
 			       Games,
 			       MP,
 			       Avg_MP,
@@ -309,7 +313,8 @@ dataset <- player_season_totals %>%
 			  'Two_back' = 'Season'),
 		   suffix = c('', '_two_back')) %>%
 	inner_join(player_season_totals %>%
-		   	select(Season,
+		   	select(Player_ID,
+			       Season,
 			       Games,
 			       MP,
 			       Avg_MP,
@@ -320,7 +325,8 @@ dataset <- player_season_totals %>%
 			  'Three_back' = 'Season'),
 		   suffix = c('', '_three_back')) %>%
 	inner_join(player_season_totals %>%
-		   	select(Season,
+		   	select(Player_ID,
+			       Season,
 			       Games,
 			       MP,
 			       Avg_MP,
@@ -331,7 +337,8 @@ dataset <- player_season_totals %>%
 			  'Four_back' = 'Season'),
 		   suffix = c('', '_four_back')) %>%
 	inner_join(player_season_totals %>%
-		   	select(Season,
+		   	select(Player_ID,
+			       Season,
 			       Games,
 			       MP,
 			       Avg_MP,
@@ -348,15 +355,17 @@ dataset <- player_season_totals %>%
 		       Next_Season_Games),
 		       by = c('Player_ID' = 'Player_ID',
 			      'Season' = 'Season')) %>%
-	select(!c('Two_back',
+	select(!c('Season',
+		  'Two_back',
 		  'Three_back',
 		  'Four_back',
-		  'Five_back'))
+		  'Five_back')) %>%
+	group_by(Player_ID)
 
+dataset$Player_ID <- as_factor(dataset$Player_ID)
 ```
 
 ```
-
 Names <- dbReadTable(conn, "player_info") %>%
 	as_tibble() %>%
 	select(Player_ID, Name)
@@ -365,7 +374,6 @@ player_season_totals %>%
 	inner_join(Names, by = c('Player_ID' = 'Player_ID')) %>%
 	arrange(desc(O_W_shares)) %>%
 	View()
-
 ```
 
 ---
