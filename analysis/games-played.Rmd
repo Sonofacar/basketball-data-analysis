@@ -12,7 +12,25 @@ library(lubridate)
 library(devtools)
 load_all('lib/advanced.stats/')
 conn = dbConnect(RSQLite::SQLite(), "../data/bball_db")
+```
 
+In an effort to make a simple and useful tool for predicting performance among NBA players,
+I start with this analysis of the number of games played in a season given past performance.
+The data to be used comes from the web-scraping script found in this same repository,
+and it comprised of 20 years worth of game-by-game and quarter-by-quarter data of individual and team data.
+There are some obvious mistakes in the data,
+and there are likely some that are more subtle.
+Furthermore, I have made some approximations to ease some calculations.
+Regardless, if the data is not accurate at any point,
+those mistakes are likely to be outweighed by the sheer quantity of observations.
+
+As a premise for this analysis,
+I am only analyzing players who would be reasonably likely to be picked for a roughly-standard fantasy basketball team as this is my main goal.
+The criteria will be as follows: Either a player..
+- Played at least 1000 minutes in a season
+- Or they were injured for some portion of games and averaged over 20 minutes per game
+
+```{r data_cleanup, include=FALSE}
 birthdays <- dbReadTable(conn, "player_info") %>%
 	as_tibble() %>%
 	mutate(Birthday = mdy(Birthday)) %>%
@@ -272,7 +290,7 @@ player_season_totals <- dbReadTable(conn, "player_games") %>%
 	inner_join(birthdays, by = c("Player_ID" = "Player_ID")) %>%
 	inner_join(season_start, by = c("Season" = "Season")) %>%
 	mutate(Age = floor(interval(Birthday, Start_Date) / years(1))) %>%
-	filter(MP > 500 | Inj_pct > 0) %>%
+	filter(MP > 1000 | (Inj_pct > 0 & Avg_MP > 20)) %>%
 	select(Player_ID,
 	       Season,
 	       MP,
@@ -290,16 +308,15 @@ player_season_totals <- dbReadTable(conn, "player_games") %>%
 	       PIE_sum,
 	       Avg_GmSc) %>%
 	mutate(Two_back = Season - 1,
-	       Three_back = Season - 2,
-	       Four_back = Season - 3,
-	       Five_back = Season - 4)
+	       Three_back = Season - 2)
 
 results <- player_season_totals %>%
 	mutate(Next_Season_Games = Games) %>%
 	select(Player_ID, Season, Next_Season_Games)
 
-dataset <- player_season_totals %>%
-	mutate(Season = Season + 1) %>%
+data <- player_season_totals %>%
+	mutate(Season = Season + 1,
+	       Age = Age + 1) %>%
 	inner_join(player_season_totals %>%
 		   	select(Player_ID,
 			       Season,
@@ -325,30 +342,6 @@ dataset <- player_season_totals %>%
 			  'Three_back' = 'Season'),
 		   suffix = c('', '_three_back')) %>%
 	inner_join(player_season_totals %>%
-		   	select(Player_ID,
-			       Season,
-			       Games,
-			       MP,
-			       Avg_MP,
-			       Inj_pct,
-			       PIE_sum,
-			       Avg_GmSc),
-		   by = c('Player_ID' = 'Player_ID',
-			  'Four_back' = 'Season'),
-		   suffix = c('', '_four_back')) %>%
-	inner_join(player_season_totals %>%
-		   	select(Player_ID,
-			       Season,
-			       Games,
-			       MP,
-			       Avg_MP,
-			       Inj_pct,
-			       PIE_sum,
-			       Avg_GmSc),
-		   by = c('Player_ID' = 'Player_ID',
-			  'Five_back' = 'Season'),
-		   suffix = c('', '_five_back')) %>%
-	inner_join(player_season_totals %>%
 		mutate(Next_Season_Games = Games) %>%
 		select(Player_ID,
 		       Season,
@@ -362,40 +355,46 @@ dataset <- player_season_totals %>%
 		  'Five_back')) %>%
 	group_by(Player_ID)
 
-dataset$Player_ID <- as_factor(dataset$Player_ID)
+data$Player_ID <- as_factor(data$Player_ID)
 ```
+As it stands, this only leaves me with `r dim(data)[0]` data points.
+The aggregation and joining of data spanning multiple years tremendously reduces the data available,
+but it is still a very large number given the subjects of interest in a given year might only add up to `r 12*13`.
 
-```
-Names <- dbReadTable(conn, "player_info") %>%
-	as_tibble() %>%
-	select(Player_ID, Name)
+I will assume a basic understanding of advanced basketball statistics,
+but for the most part, even that's not needed for most of the data that will likely be useful.
+Keep in mind too that if not otherwise stated,
+the explanation is referring to the data a season prior to the season of interest.
+Here is a simple explanation of each piece of data I have available to me for this analysis:
 
-player_season_totals %>%
-	inner_join(Names, by = c('Player_ID' = 'Player_ID')) %>%
-	arrange(desc(O_W_shares)) %>%
-	View()
-```
+| Variable            | Explanation                                                                     |
+|---------------------|---------------------------------------------------------------------------------|
+| Player_ID           | Id number given to each player                                                  |
+| MP                  | Total minutes played                                                            |
+| Games               | Proportion of games played                                                      |
+| Avg_MP              | Average number of minutes played in each game that was played                   |
+| Age                 | Age at the start of the season                                                  |
+| Avg_Usage           | Average usage rate                                                              |
+| Touches             | Number of touches a player got in a season                                      |
+| team_Pace           | The average pace for the player's team (following the player if traded)         |
+| Inj_pct             | Proportion of games where the player was injured                                |
+| Avg_O_Rating        | Average offensive rating, using my basic approximation                          |
+| Avg_D_Rating        | Average defensive rating                                                        |
+| O_W_shares          | Total offensive win shares, based off my approximation of offensive rating      |
+| D_W_shares          | Total defensive win shares                                                      |
+| PIE_sum             | Sum of Player Impact Estimate for each game                                     |
+| Avg_GmSc            | Average player game score                                                       |
+| Games_two_back      | Proportion of games played two seasons ago                                      |
+| MP_two_back         | Total minutes played two seasons ago                                            |
+| Avg_MP_two_back     | Average number of minutes played in each game that was played two seasons ago   |
+| Inj_pct_two_back    | Proportion of games where the player was injured two seasons ago                |
+| PIE_sum_two_back    | Sum of Player Impact Estimate for each game two seasons ago                     |
+| Avg_GmSc_two_back   | Average player game score two seasons ago                                       |
+| Games_three_back    | Proportion of games played three seasons ago                                    |
+| MP_three_back       | Total minutes played three seasons ago                                          |
+| Avg_MP_three_back   | Average number of minutes played in each game that was played three seasons ago |
+| Inj_pct_three_back  | Proportion of games where the player was injured three seasons ago              |
+| PIE_sum_three_back  | Sum of Player Impact Estimate for each game three seasons ago                   |
+| Avg_GmSc_three_back | Average player game score three seasons ago                                     |
+| Next_Season_Games   | Proportion of games played in the season of interest                            |
 
----
-# The response variable: games per season
-# Explanatory variables I want to grab:
-# - Age (at beginning of season)
-# - usage
-# - Last year's touches
-# - Last year's team pace
-# - Last year's minutes per game
-# - Last 2 years' minutes per game
-# - Last 3 years' games played %
-# - Last 5 years' games played %
-# - Career proportion of games injured
-# - Offensive Rating
-# - Defensive Rating
-# - Offensive Win Shares
-# - Defensive Win Shares
-# - Player Impact Estimate
-# - Average Game Score
----
-
-```{r data_cleanup, include=FALSE}
-
-```
