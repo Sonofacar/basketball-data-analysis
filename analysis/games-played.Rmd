@@ -9,6 +9,7 @@ output: pdf_document
 library(DBI)
 library(tidyverse)
 library(lubridate)
+library(patchwork)
 library(devtools)
 load_all('lib/advanced.stats/')
 conn = dbConnect(RSQLite::SQLite(), "../data/bball_db")
@@ -413,6 +414,25 @@ Here is a simple explanation of each piece of data I have available to me for th
 # Assumptions
 
 ```{r linearity}
+
+make_plot <- function(column) {
+	output <- ggplot() +
+		geom_point(aes(x = logit(data['Next_Season_Games']), y = data[column])) +
+		theme_classic()
+	return(output)
+}
+offset = 1
+output = NULL
+for (i in 1:13) {
+	if (i %% 2 == 0) {
+		tmp = tmp + make_plot(names(data)[offset + i])
+		output = output / tmp
+	} else {
+		tmp = NULL
+		tmp = make_plot(names(data)[offset + i])
+	}
+}
+output
 
 ```
 
