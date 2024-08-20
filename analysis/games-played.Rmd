@@ -416,7 +416,8 @@ To be clear, our response variable is a count that is distributed as such:
 ```{r distribution, fig.align='center}
 ggplot(data) +
 	geom_density(aes(x = Next_Season_Not_Played), fill = '#2E5731') +
-	theme_classic()
+	theme_classic() +
+	theme(panel.background = element_rect(fill = 'grey92'))
 ```
 
 This appears to be a Poisson distribution,
