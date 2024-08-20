@@ -210,7 +210,7 @@ player_season_totals <- dbReadTable(conn, "player_games") %>%
 	group_by(Player_ID, Season) %>%
 	summarize(MP = sum(Seconds) / 60,
 		  Avg_MP = mean(Seconds / 60),
-		  Games = mean(Played),
+		  Games = sum(Played),
 		  Poss = sum(Poss),
 		  FG = sum(Twos) + sum(Threes),
 		  FGA = sum(Two_Attempts) + sum(Three_Attempts),
@@ -384,32 +384,43 @@ Here is a simple explanation of each piece of data I have available to me for th
 |---------------------|---------------------------------------------------------------------------------|
 | Player_ID           | Id number given to each player                                                  |
 | MP                  | Total minutes played                                                            |
-| Games               | Proportion of games played                                                      |
+| Games               | Number of games played                                                          |
 | Avg_MP              | Average number of minutes played in each game that was played                   |
 | Age                 | Age at the start of the season                                                  |
 | Avg_Usage           | Average usage rate                                                              |
 | Touches             | Number of touches a player got in a season                                      |
 | team_Pace           | The average pace for the player's team (following the player if traded)         |
-| Inj_pct             | Proportion of games where the player was injured                                |
+| Inj_pct             | Number of games where the player was injured                                    |
 | Avg_O_Rating        | Average offensive rating, using my basic approximation                          |
 | Avg_D_Rating        | Average defensive rating                                                        |
 | O_W_shares          | Total offensive win shares, based off my approximation of offensive rating      |
 | D_W_shares          | Total defensive win shares                                                      |
 | PIE_sum             | Sum of Player Impact Estimate for each game                                     |
 | Avg_GmSc            | Average player game score                                                       |
-| Games_two_back      | Proportion of games played two seasons ago                                      |
+| Games_two_back      | Number of games played two seasons ago                                          |
 | MP_two_back         | Total minutes played two seasons ago                                            |
 | Avg_MP_two_back     | Average number of minutes played in each game that was played two seasons ago   |
-| Inj_pct_two_back    | Proportion of games where the player was injured two seasons ago                |
+| Inj_pct_two_back    | Number of games where the player was injured two seasons ago                    |
 | PIE_sum_two_back    | Sum of Player Impact Estimate for each game two seasons ago                     |
 | Avg_GmSc_two_back   | Average player game score two seasons ago                                       |
-| Games_three_back    | Proportion of games played three seasons ago                                    |
+| Games_three_back    | Number of games played three seasons ago                                        |
 | MP_three_back       | Total minutes played three seasons ago                                          |
 | Avg_MP_three_back   | Average number of minutes played in each game that was played three seasons ago |
-| Inj_pct_three_back  | Proportion of games where the player was injured three seasons ago              |
+| Inj_pct_three_back  | Number of games where the player was injured three seasons ago                  |
 | PIE_sum_three_back  | Sum of Player Impact Estimate for each game three seasons ago                   |
 | Avg_GmSc_three_back | Average player game score three seasons ago                                     |
-| Next_Season_Games   | Proportion of games played in the season of interest                            |
+| Next_Season_Games   | Number of games played in the season of interest                                |
+
+To be clear, our response variable is a count that is distributed as such:
+
+```{r}
+ggplot(data) +
+	geom_density(aes(x = Next_Season_Games), fill = 'darkgreen') +
+	theme_classic()
+```
+
+This appears to be a negative binomial distribution,
+so this will be the aim of the model going forward.
 
 # Assumptions
 
@@ -443,3 +454,4 @@ output
 ```{r multicollinearity}
 
 ```
+
