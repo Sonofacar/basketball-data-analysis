@@ -415,7 +415,7 @@ To be clear, our response variable is a count that is distributed as such:
 
 ```{r distribution, fig.align='center}
 ggplot(data) +
-	geom_density(aes(x = Next_Season_Not_Played), fill = 'darkgreen') +
+	geom_density(aes(x = Next_Season_Not_Played), fill = '#2E5731') +
 	theme_classic()
 ```
 
@@ -427,10 +427,12 @@ so this will be the aim of the model going forward.
 ```{r individual-relationships, fig.align='center'}
 make_plot <- function(column) {
 	output <- ggplot(data) +
-		geom_point(aes(y = Next_Season_Not_Played, x = .data[[column]]), position = 'jitter') +
+		geom_point(aes(y = Next_Season_Not_Played, x = .data[[column]]), position = 'jitter', alpha = .5, color = '#1B341D') +
 		scale_y_sqrt() +
-		ylab('Not Played') +
-		theme_classic()
+		ylab('Games Not Played') +
+		theme_classic() +
+		theme(axis.title = element_text(color = "grey20", size = 8, angle = 0, hjust = .5, vjust = 0, face = "plain"),
+		      panel.background = element_rect(fill = 'grey92'))
 	return(output)
 }
 MP_plot <- make_plot("MP")
@@ -464,8 +466,8 @@ Avg_GmSc_three_back_plot <- make_plot("Avg_GmSc_three_back")
 (Avg_O_Rating_plot | Avg_D_Rating_plot | O_W_shares_plot | D_W_shares_plot) /
 (PIE_sum_plot | Avg_GmSc_plot | Not_Played_two_back_plot | MP_two_back_plot) /
 (Avg_MP_two_back_plot | Inj_pct_two_back_plot | PIE_sum_two_back_plot | Avg_GmSc_two_back_plot) /
-(Not_Played_three_back_plot | MP_three_back_plot | Avg_MP_three_back_plot | Inj_pct_three_back_plot) /
-(PIE_sum_three_back_plot | Avg_GmSc_three_back_plot)
+(Not_Played_three_back_plot | MP_three_back_plot | Avg_MP_three_back_plot) /
+(Inj_pct_three_back_plot | PIE_sum_three_back_plot | Avg_GmSc_three_back_plot)
 ```
 
 ```{r residuals}
