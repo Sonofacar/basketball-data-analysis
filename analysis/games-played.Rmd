@@ -210,7 +210,7 @@ player_season_totals <- dbReadTable(conn, "player_games") %>%
 	group_by(Player_ID, Season) %>%
 	summarize(MP = sum(Seconds) / 60,
 		  Avg_MP = mean(Seconds / 60),
-		  Games = sum(Played),
+		  Not_Played = n() - sum(Played),
 		  Poss = sum(Poss),
 		  FG = sum(Twos) + sum(Threes),
 		  FGA = sum(Two_Attempts) + sum(Three_Attempts),
@@ -306,7 +306,7 @@ player_season_totals <- dbReadTable(conn, "player_games") %>%
 	select(Player_ID,
 	       Season,
 	       MP,
-	       Games,
+	       Not_Played,
 	       Avg_MP,
 	       Age,
 	       Avg_Usage,
@@ -323,8 +323,8 @@ player_season_totals <- dbReadTable(conn, "player_games") %>%
 	       Three_back = Season - 2)
 
 results <- player_season_totals %>%
-	mutate(Next_Season_Games = Games) %>%
-	select(Player_ID, Season, Next_Season_Games)
+	mutate(Next_Season_Not_Played = Not_Played) %>%
+	select(Player_ID, Season, Next_Season_Not_Played)
 
 data <- player_season_totals %>%
 	mutate(Season = Season + 1,
@@ -332,7 +332,7 @@ data <- player_season_totals %>%
 	inner_join(player_season_totals %>%
 		   	select(Player_ID,
 			       Season,
-			       Games,
+			       Not_Played,
 			       MP,
 			       Avg_MP,
 			       Inj_pct,
@@ -344,7 +344,7 @@ data <- player_season_totals %>%
 	inner_join(player_season_totals %>%
 		   	select(Player_ID,
 			       Season,
-			       Games,
+			       Not_Played,
 			       MP,
 			       Avg_MP,
 			       Inj_pct,
@@ -354,10 +354,10 @@ data <- player_season_totals %>%
 			  'Three_back' = 'Season'),
 		   suffix = c('', '_three_back')) %>%
 	inner_join(player_season_totals %>%
-		mutate(Next_Season_Games = Games) %>%
+		mutate(Next_Season_Not_Played = Not_Played) %>%
 		select(Player_ID,
 		       Season,
-		       Next_Season_Games),
+		       Next_Season_Not_Played),
 		       by = c('Player_ID' = 'Player_ID',
 			      'Season' = 'Season')) %>%
 	select(!c('Season',
@@ -380,71 +380,92 @@ Keep in mind too that if not otherwise stated,
 the explanation is referring to the data a season prior to the season of interest.
 Here is a simple explanation of each piece of data I have available to me for this analysis:
 
-| Variable            | Explanation                                                                     |
-|---------------------|---------------------------------------------------------------------------------|
-| Player_ID           | Id number given to each player                                                  |
-| MP                  | Total minutes played                                                            |
-| Games               | Number of games played                                                          |
-| Avg_MP              | Average number of minutes played in each game that was played                   |
-| Age                 | Age at the start of the season                                                  |
-| Avg_Usage           | Average usage rate                                                              |
-| Touches             | Number of touches a player got in a season                                      |
-| team_Pace           | The average pace for the player's team (following the player if traded)         |
-| Inj_pct             | Number of games where the player was injured                                    |
-| Avg_O_Rating        | Average offensive rating, using my basic approximation                          |
-| Avg_D_Rating        | Average defensive rating                                                        |
-| O_W_shares          | Total offensive win shares, based off my approximation of offensive rating      |
-| D_W_shares          | Total defensive win shares                                                      |
-| PIE_sum             | Sum of Player Impact Estimate for each game                                     |
-| Avg_GmSc            | Average player game score                                                       |
-| Games_two_back      | Number of games played two seasons ago                                          |
-| MP_two_back         | Total minutes played two seasons ago                                            |
-| Avg_MP_two_back     | Average number of minutes played in each game that was played two seasons ago   |
-| Inj_pct_two_back    | Number of games where the player was injured two seasons ago                    |
-| PIE_sum_two_back    | Sum of Player Impact Estimate for each game two seasons ago                     |
-| Avg_GmSc_two_back   | Average player game score two seasons ago                                       |
-| Games_three_back    | Number of games played three seasons ago                                        |
-| MP_three_back       | Total minutes played three seasons ago                                          |
-| Avg_MP_three_back   | Average number of minutes played in each game that was played three seasons ago |
-| Inj_pct_three_back  | Number of games where the player was injured three seasons ago                  |
-| PIE_sum_three_back  | Sum of Player Impact Estimate for each game three seasons ago                   |
-| Avg_GmSc_three_back | Average player game score three seasons ago                                     |
-| Next_Season_Games   | Number of games played in the season of interest                                |
+| Variable                 | Explanation                                                                     |
+|--------------------------|---------------------------------------------------------------------------------|
+| Player_ID                | Id number given to each player                                                  |
+| MP                       | Total minutes played                                                            |
+| Not_Played               | Number of games played                                                          |
+| Avg_MP                   | Average number of minutes played in each game that was played                   |
+| Age                      | Age at the start of the season                                                  |
+| Avg_Usage                | Average usage rate                                                              |
+| Touches                  | Number of touches a player got in a season                                      |
+| team_Pace                | The average pace for the player's team (following the player if traded)         |
+| Inj_pct                  | Number of games where the player was injured                                    |
+| Avg_O_Rating             | Average offensive rating, using my basic approximation                          |
+| Avg_D_Rating             | Average defensive rating                                                        |
+| O_W_shares               | Total offensive win shares, based off my approximation of offensive rating      |
+| D_W_shares               | Total defensive win shares                                                      |
+| PIE_sum                  | Sum of Player Impact Estimate for each game                                     |
+| Avg_GmSc                 | Average player game score                                                       |
+| Not_Played_two_back      | Number of games played two seasons ago                                          |
+| MP_two_back              | Total minutes played two seasons ago                                            |
+| Avg_MP_two_back          | Average number of minutes played in each game that was played two seasons ago   |
+| Inj_pct_two_back         | Number of games where the player was injured two seasons ago                    |
+| PIE_sum_two_back         | Sum of Player Impact Estimate for each game two seasons ago                     |
+| Avg_GmSc_two_back        | Average player game score two seasons ago                                       |
+| Not_Played_three_back    | Number of games played three seasons ago                                        |
+| MP_three_back            | Total minutes played three seasons ago                                          |
+| Avg_MP_three_back        | Average number of minutes played in each game that was played three seasons ago |
+| Inj_pct_three_back       | Number of games where the player was injured three seasons ago                  |
+| PIE_sum_three_back       | Sum of Player Impact Estimate for each game three seasons ago                   |
+| Avg_GmSc_three_back      | Average player game score three seasons ago                                     |
+| Next_Season_Not_Played   | Number of games played in the season of interest                                |
 
 To be clear, our response variable is a count that is distributed as such:
 
-```{r}
+```{r distribution, fig.align='center}
 ggplot(data) +
-	geom_density(aes(x = Next_Season_Games), fill = 'darkgreen') +
+	geom_density(aes(x = Next_Season_Not_Played), fill = 'darkgreen') +
 	theme_classic()
 ```
 
-This appears to be a negative binomial distribution,
+This appears to be a Poisson distribution,
 so this will be the aim of the model going forward.
 
 # Assumptions
 
-```{r linearity}
-
+```{r individual-relationships, fig.align='center'}
 make_plot <- function(column) {
-	output <- ggplot() +
-		geom_point(aes(x = logit(data['Next_Season_Games']), y = data[column])) +
+	output <- ggplot(data) +
+		geom_point(aes(y = Next_Season_Not_Played, x = .data[[column]]), position = 'jitter') +
+		scale_y_sqrt() +
+		ylab('Not Played') +
 		theme_classic()
 	return(output)
 }
-offset = 1
-output = NULL
-for (i in 1:13) {
-	if (i %% 2 == 0) {
-		tmp = tmp + make_plot(names(data)[offset + i])
-		output = output / tmp
-	} else {
-		tmp = NULL
-		tmp = make_plot(names(data)[offset + i])
-	}
-}
-output
-
+MP_plot <- make_plot("MP")
+Not_Played_plot <- make_plot("Not_Played")
+Avg_MP_plot <- make_plot("Avg_MP")
+Age_plot <- make_plot("Age")
+Avg_Usage_plot <- make_plot("Avg_Usage")
+Touches_plot <- make_plot("Touches")
+team_Pace_plot <- make_plot("team_Pace")
+Inj_pct_plot <- make_plot("Inj_pct")
+Avg_O_Rating_plot <- make_plot("Avg_O_Rating")
+Avg_D_Rating_plot <- make_plot("Avg_D_Rating")
+O_W_shares_plot <- make_plot("O_W_shares")
+D_W_shares_plot <- make_plot("D_W_shares")
+PIE_sum_plot <- make_plot("PIE_sum")
+Avg_GmSc_plot <- make_plot("Avg_GmSc")
+Not_Played_two_back_plot <- make_plot("Not_Played_two_back")
+MP_two_back_plot <- make_plot("MP_two_back")
+Avg_MP_two_back_plot <- make_plot("Avg_MP_two_back")
+Inj_pct_two_back_plot <- make_plot("Inj_pct_two_back")
+PIE_sum_two_back_plot <- make_plot("PIE_sum_two_back")
+Avg_GmSc_two_back_plot <- make_plot("Avg_GmSc_two_back")
+Not_Played_three_back_plot <- make_plot("Not_Played_three_back")
+MP_three_back_plot <- make_plot("MP_three_back")
+Avg_MP_three_back_plot <- make_plot("Avg_MP_three_back")
+Inj_pct_three_back_plot <- make_plot("Inj_pct_three_back")
+PIE_sum_three_back_plot <- make_plot("PIE_sum_three_back")
+Avg_GmSc_three_back_plot <- make_plot("Avg_GmSc_three_back")
+(MP_plot | Not_Played_plot | Avg_MP_plot | Age_plot) /
+(Avg_Usage_plot | Touches_plot | team_Pace_plot | Inj_pct_plot) /
+(Avg_O_Rating_plot | Avg_D_Rating_plot | O_W_shares_plot | D_W_shares_plot) /
+(PIE_sum_plot | Avg_GmSc_plot | Not_Played_two_back_plot | MP_two_back_plot) /
+(Avg_MP_two_back_plot | Inj_pct_two_back_plot | PIE_sum_two_back_plot | Avg_GmSc_two_back_plot) /
+(Not_Played_three_back_plot | MP_three_back_plot | Avg_MP_three_back_plot | Inj_pct_three_back_plot) /
+(PIE_sum_three_back_plot | Avg_GmSc_three_back_plot)
 ```
 
 ```{r residuals}
