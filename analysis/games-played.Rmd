@@ -327,7 +327,7 @@ results <- player_season_totals %>%
 	mutate(Next_Season_Not_Played = Not_Played) %>%
 	select(Player_ID, Season, Next_Season_Not_Played)
 
-data <- player_season_totals %>%
+raw <- player_season_totals %>%
 	mutate(Season = Season + 1,
 	       Age = Age + 1) %>%
 	inner_join(player_season_totals %>%
@@ -366,10 +366,19 @@ data <- player_season_totals %>%
 		  'Three_back')) %>%
 	group_by(Player_ID)
 
-data$Player_ID <- as_factor(data$Player_ID)
+raw$Player_ID <- as_factor(data$Player_ID)
 ```
 
-As it stands, this only leaves me with `r dim(data)[0]` data points.
+```{r set_asside, include = FALSE}
+set.seed(1967923901)
+rows <- nrow(raw)
+n <- round(.1 * rows)
+holding <- sample(1:rows, n)
+data <- raw[-holding,]
+withheld <- raw[holding,]
+```
+
+As it stands, this only leaves me with `r dim(data)[0]` data points to use and `r n` data points withheld for cross validation.
 The aggregation and joining of data spanning multiple years tremendously reduces the data available,
 but it is still a very large number given the subjects of interest in a given year might only add up to `r 12*13`.
 
