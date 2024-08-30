@@ -11,6 +11,7 @@ library(tidyverse)
 library(lubridate)
 library(patchwork)
 library(lme4)
+library(cAIC4)
 library(corrplot)
 library(devtools)
 load_all('lib/advanced.stats/')
@@ -219,6 +220,7 @@ player_season_totals <- dbReadTable(conn, "player_games") %>%
 	summarize(MP = sum(Seconds) / 60,
 		  Avg_MP = mean(Seconds / 60),
 		  Not_Played = n() - sum(Played),
+		  Games = sum(Played),
 		  Poss = sum(Poss),
 		  FG = sum(Twos) + sum(Threes),
 		  FGA = sum(Two_Attempts) + sum(Three_Attempts),
@@ -314,6 +316,7 @@ player_season_totals <- dbReadTable(conn, "player_games") %>%
 	select(Player_ID,
 	       Season,
 	       MP,
+	       #Games,
 	       Not_Played,
 	       Avg_MP,
 	       Age,
@@ -355,6 +358,7 @@ raw <- standardized_player_season_totals %>%
 	inner_join(standardized_player_season_totals %>%
 		   	select(Player_ID,
 			       Season,
+			       #Games,
 			       Not_Played,
 			       MP,
 			       Avg_MP,
@@ -367,6 +371,7 @@ raw <- standardized_player_season_totals %>%
 	inner_join(standardized_player_season_totals %>%
 		   	select(Player_ID,
 			       Season,
+			       #Games,
 			       Not_Played,
 			       MP,
 			       Avg_MP,
@@ -378,9 +383,11 @@ raw <- standardized_player_season_totals %>%
 		   suffix = c('', '_three_back')) %>%
 	inner_join(standardized_player_season_totals %>%
 		mutate(Next_Season_Not_Played = Not_Played) %>%
+		#mutate(Next_Season_Games = Games) %>%
 		select(Player_ID,
 		       Season,
 		       Next_Season_Not_Played),
+		       #Next_Season_Games),
 		       by = c('Player_ID' = 'Player_ID',
 			      'Season' = 'Season')) %>%
 	select(!c('Season',
@@ -450,6 +457,11 @@ ggplot(data) +
 	geom_density(aes(x = Next_Season_Not_Played), fill = '#2E5731') +
 	theme_classic() +
 	theme(panel.background = element_rect(fill = 'grey92'))
+
+ggplot(data) +
+	geom_density(aes(x = Next_Season_Games), fill = '#2E5731') +
+	theme_classic() +
+	theme(panel.background = element_rect(fill = 'grey92'))
 ```
 
 This appears to be a Poisson distribution,
@@ -467,39 +479,75 @@ There are some obvious multicollinearity problems when it comes to the percentag
 We will take out the games not played variables to start with.
 
 ```{r beginning_model, include=FALSE}
-starting_model <- glmer(Next_Season_Not_Played ~ MP + 
-			Avg_MP +
-			Age +
-			Avg_Usage +
-			Touches +
-			team_Pace +
-			Inj_pct +
-			Avg_O_Rating +
-			Avg_D_Rating +
-			O_W_shares +
-			D_W_shares +
-			PIE_sum +
-			Avg_GmSc +
-			MP_two_back +
-			Avg_MP_two_back +
-			Inj_pct_two_back +
-			PIE_sum_two_back +
-			Avg_GmSc_two_back +
-			MP_three_back +
-			Avg_MP_three_back +
-			Inj_pct_three_back +
-			PIE_sum_three_back +
-			Avg_GmSc_three_back +
-			Inj_pct * Inj_pct_two_back +
-			Inj_pct * Inj_pct_two_back * Inj_pct_three_back +
-			(1 +
-			 Age +
-			 Avg_Usage| Player_ID),
-			data = data,
-			family = poisson(link = 'sqrt'))
+starting_model <- glm(Next_Season_Not_Played ~ MP + 
+		      Not_Played +
+		      Avg_MP +
+		      Age +
+		      Avg_Usage +
+		      Touches +
+		      team_Pace +
+		      Inj_pct +
+		      Avg_O_Rating +
+		      Avg_D_Rating +
+		      O_W_shares +
+		      D_W_shares +
+		      PIE_sum +
+		      Avg_GmSc +
+		      Not_Played_two_back +
+		      MP_two_back +
+		      Avg_MP_two_back +
+		      Inj_pct_two_back +
+		      PIE_sum_two_back +
+		      Avg_GmSc_two_back +
+		      Not_Played_three_back +
+		      MP_three_back +
+		      Avg_MP_three_back +
+		      Inj_pct_three_back +
+		      PIE_sum_three_back +
+		      Avg_GmSc_three_back,
+		      data = data,
+		      family = poisson(link = 'sqrt'))
+
+selected <- step(starting_model,
+		 groupCandidates = c('Player_ID'),
+		 direction = 'both',
+		 data = data,
+		 trace = TRUE)
+
+cols <- attr(forward_select$terms, 'term.labels')
 ```
 
 # Assumptions
+
+The most probable assumption to be broken in our case is multicollinearity.
+We can see by checking the variance inflation factor of each variable:
+
+```{r multicollinearity}
+vif(forward_select)
+```
+
+Before checking the other assumptions,
+I will go forward removing variables until all variance inflation factors are under 5,
+then I will perform the same variable selection process again and reassess.
+
+```{r fix_multicoll}
+tmp_model <- selected
+while(sum(vif(tmp_model) > 5) != 0) {
+	keep <- vif(tmp_model) != vif(tmp_model) %>% max()
+	tmp_cols <- attr(tmp_model$terms, 'term.labels')
+	new_form <- as.formula(paste('Next_Season_Not_Played ~', paste(tmp_cols[keep], collapse = ' + ')))
+	tmp_model <- glm(new_form, data = data, family = poisson(link = 'sqrt')) 
+}
+
+selected <- step(tmp_model,
+		 groupCandidates = c('Player_ID'),
+		 direction = 'both',
+		 data = data,
+		 trace = TRUE)
+```
+
+Now that we seemingly have removed most of the significant multicollinearity,
+we will move forward with checking our assumptions.
 
 ```{r individual-relationships, fig.align='center'}
 make_plot <- function(column) {
@@ -512,46 +560,24 @@ make_plot <- function(column) {
 		      panel.background = element_rect(fill = 'grey92'))
 	return(output)
 }
-MP_plot <- make_plot("MP")
 Not_Played_plot <- make_plot("Not_Played")
 Avg_MP_plot <- make_plot("Avg_MP")
-Age_plot <- make_plot("Age")
 Avg_Usage_plot <- make_plot("Avg_Usage")
 Touches_plot <- make_plot("Touches")
 team_Pace_plot <- make_plot("team_Pace")
-Inj_pct_plot <- make_plot("Inj_pct")
-Avg_O_Rating_plot <- make_plot("Avg_O_Rating")
 Avg_D_Rating_plot <- make_plot("Avg_D_Rating")
-O_W_shares_plot <- make_plot("O_W_shares")
-D_W_shares_plot <- make_plot("D_W_shares")
-PIE_sum_plot <- make_plot("PIE_sum")
-Avg_GmSc_plot <- make_plot("Avg_GmSc")
 Not_Played_two_back_plot <- make_plot("Not_Played_two_back")
-MP_two_back_plot <- make_plot("MP_two_back")
 Avg_MP_two_back_plot <- make_plot("Avg_MP_two_back")
-Inj_pct_two_back_plot <- make_plot("Inj_pct_two_back")
 PIE_sum_two_back_plot <- make_plot("PIE_sum_two_back")
-Avg_GmSc_two_back_plot <- make_plot("Avg_GmSc_two_back")
-Not_Played_three_back_plot <- make_plot("Not_Played_three_back")
 MP_three_back_plot <- make_plot("MP_three_back")
-Avg_MP_three_back_plot <- make_plot("Avg_MP_three_back")
-Inj_pct_three_back_plot <- make_plot("Inj_pct_three_back")
-PIE_sum_three_back_plot <- make_plot("PIE_sum_three_back")
 Avg_GmSc_three_back_plot <- make_plot("Avg_GmSc_three_back")
-(MP_plot | Not_Played_plot | Avg_MP_plot | Age_plot) /
-(Avg_Usage_plot | Touches_plot | team_Pace_plot | Inj_pct_plot) /
-(Avg_O_Rating_plot | Avg_D_Rating_plot | O_W_shares_plot | D_W_shares_plot) /
-(PIE_sum_plot | Avg_GmSc_plot | Not_Played_two_back_plot | MP_two_back_plot) /
-(Avg_MP_two_back_plot | Inj_pct_two_back_plot | PIE_sum_two_back_plot | Avg_GmSc_two_back_plot) /
-(Not_Played_three_back_plot | MP_three_back_plot | Avg_MP_three_back_plot) /
-(Inj_pct_three_back_plot | PIE_sum_three_back_plot | Avg_GmSc_three_back_plot)
+( Not_Played_plot | Avg_MP_plot | Avg_Usage_plot ) /
+( Touches_plot | team_Pace_plot | Avg_D_Rating_plot ) /
+( Not_Played_two_back_plot | Avg_MP_two_back_plot | PIE_sum_two_back_plot ) /
+( MP_three_back_plot | Avg_GmSc_three_back_plot )
 ```
 
 ```{r residuals}
-
-```
-
-```{r multicollinearity}
 
 ```
 
