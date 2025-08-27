@@ -178,3 +178,63 @@ possessions_team_precise <- function(
     possessions_team(O_FGA, O_FG, O_FTA, O_OREB, O_TOV, DREB, adjustment)
   )
 }
+
+# Because there are multiple possession functions available, pace will need to
+# be given the possession value from the desired form.
+pace <- function(MIN = 0, POSS = 0)
+{
+  # Check for valid input
+  numeric_check(MIN, POSS)
+
+  48 * 5 * POSS / MIN
+}
+
+# Usage
+usage <- function(
+  MP = 0,
+  FGA = 0,
+  FTA = 0,
+  TOV = 0,
+  T_MP = 0,
+  T_FGA = 0,
+  T_FTA = 0,
+  T_TOV = 0,
+  adjustment = list()
+) {
+  # Check for valid input
+  numeric_check(
+    MP,
+    FGA,
+    FTA,
+    TOV,
+    T_MP,
+    T_FGA,
+    T_FTA,
+    T_TOV
+  )
+  list_check(adjustment)
+
+  # Pull default values
+  adjust <- list(
+    FTA = 0.4,
+    REB = 1.07
+  ) |>
+    modifyList(adjustment) |>
+    pull_coefficient()
+
+  100 *
+  (
+    FGA +
+    FTA * adjust("FTA") +
+    TOV
+  ) *
+  (
+    T_MP /
+    (MP * 5)
+  ) /
+  (
+    T_FGA +
+    T_FTA * adjust("FTA") +
+    T_TOV
+  )
+}
