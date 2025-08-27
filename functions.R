@@ -238,3 +238,22 @@ usage <- function(
     T_TOV
   )
 }
+
+# Pythagorean Wins, used to estimate final win percentage
+pythagorean_wins <- function(T_PTS = 0, O_PTS = 0, adjustment = list()) {
+  # Check for valid input
+  numeric_check(T_PTS, O_PTS)
+  list_check(adjustment)
+
+  # Pull default values
+  adjust <- list(EXP = 14) |>
+    modifyList(adjustment)
+    pull_coefficient()
+
+  T_PTS ^ adjust("EXP") /
+  (
+    T_PTS ^ adjust("EXP") +
+    O_PTS ^ adjust("EXP")
+  )
+}
+
