@@ -2,6 +2,25 @@
 # Run in other scripts as:
 # `source("functions.R")`
 
+# Utility function to pull a coefficient from a list
+pull_coefficient <- function(l = list()) {
+  \(column) l[[column]]
+}
+
+# Utility function to check inputs that should be numbers
+numeric_check <- function(...) {
+  c(...) |>
+    is.numeric() |>
+    stopifnot()
+}
+
+# Utility function to check that input is a list
+list_check <- function(l) {
+  l |>
+    is.list() |>
+    stopifnot()
+}
+
 # Fantasy points following the ESPN base line points system
 fantasy_points <- function(
   PTS = 0,
@@ -18,7 +37,7 @@ fantasy_points <- function(
   point_mapping = list()
 ) {
   # Check for correct inputs
-  c(
+  numeric_check(
     PTS,
     threePM,
     FGA,
@@ -30,12 +49,8 @@ fantasy_points <- function(
     STL,
     BLK,
     TOV
-  ) |>
-    is.numeric() |>
-    stopifnot()
-  point_mapping |>
-    is.list() |>
-    stopifnot()
+  )
+  list_check(point_mapping)
 
   # Define default point structure and add custom changes
   points <- list(
@@ -52,9 +67,7 @@ fantasy_points <- function(
     TOV = -2
   ) |>
     modifyList(point_mapping) |>
-    (\(l) (
-      \(column) l[[column]])
-    )()
+    pull_coefficient()
 
   (
     PTS * points("PTS") +
@@ -68,5 +81,100 @@ fantasy_points <- function(
     STL * points("STL") +
     BLK * points("BLK") +
     TOV * points("TOV")
+  )
+}
+
+# Team possession estimation
+possessions_team_simple <- function(
+  FGA = 0,
+  FTA = 0,
+  OREB = 0,
+  TOV = 0,
+  adjustment = list()
+) {
+  # Check if input is valid
+  numeric_check(FGA, FTA, OREB, TOV)
+  list_check(adjustment)
+
+  adjust <- list(
+    FGA = 0.96,
+    FTA = 0.44
+  ) |>
+    modifyList(adjustment) |>
+    pull_coefficient()
+
+  (
+    FGA * adjust("FGA") +
+    FTA * adjust("FTA") +
+    TOV -
+    OREB
+  )
+}
+
+# More precise, but more complex calculation of possessions
+possessions_team <- function(
+  FGA = 0,
+  FG = 0,
+  FTA = 0,
+  OREB = 0,
+  TOV = 0,
+  O_DREB = 0,
+  adjustment = list()
+) {
+  # Check for valid inputs
+  numeric_check(
+    FGA,
+    FG,
+    FTA,
+    OREB,
+    TOV,
+    O_DREB
+  )
+  list_check(adjustment)
+
+  # If these are zero, we won't be able to compute
+  (
+    (OREB + O_DREB) != 0
+  ) |>
+    stopifnot()
+
+  # Pull default values
+  adjust <- list(
+    FTA = 0.4,
+    REB = 1.07
+  ) |>
+    modifyList(adjustment) |>
+    pull_coefficient()
+
+  FGA +
+  FTA * adjust("FTA")
+  (OREB/(OREB + O_DREB)) * adjust("REB") *
+  (FGA - FG) +
+  TOV
+}
+
+# Meta function that averages takes calculation for both teams and averages it
+# out to be more precise.
+possessions_team_precise <- function(
+  FGA = 0,
+  FG = 0,
+  FTA = 0,
+  OREB = 0,
+  DREB = 0,
+  TOV = 0,
+  O_FGA = 0,
+  O_FG = 0,
+  O_FTA = 0,
+  O_OREB = 0,
+  O_DREB = 0,
+  O_TOV = 0,
+  adjustment = list()
+) {
+  # We don't need to check for input validity, but we do need to pass
+  # adjustment list.
+  mapply(
+    mean,
+    possessions_team(FGA, FG, FTA, OREB, TOV, O_DREB, adjustment),
+    possessions_team(O_FGA, O_FG, O_FTA, O_OREB, O_TOV, DREB, adjustment)
   )
 }
