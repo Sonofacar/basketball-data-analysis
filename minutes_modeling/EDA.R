@@ -109,6 +109,8 @@ data <- player_info %>%
     suffix = c("", "_team")
   ) %>%
   inner_join(response, by = c("Player_ID", "Season")) %>%
+  group_by(Season) %>%
+  top_n(130, Fantasy_points) %>%
   select(!c(Player_ID, Team_ID)) %>%
   mutate(
     Win_pct = Wins / (Wins + Losses),
@@ -123,8 +125,34 @@ data <- player_info %>%
   )) %>%
   drop_na()
 
-train <- data
-test <- data
+# Split data into training and test sets
+train <- data %>%
+  filter(Season < 2023)
+test <- data %>%
+  filter(Season >= 2023)
 
 # Make a random forest model to act as a baseline
-model <- randomForest(Seconds ~ ., data = train, ntree = 250)
+forest <- randomForest(Seconds ~ ., data = train, ntree = 1000)
+
+linear <- lm(Seconds ~ ., data = train)
+
+# Compare the two models
+tibble(actual = test$Seconds) %>%
+  mutate(
+    random_forest = predict(forest, newdata = test),
+    linear = predict(linear, newdata = test)
+  ) %>%
+  summarize(
+    Random_Forest_RMSE = mean((random_forest - actual)^2) %>% sqrt(),
+    Linear_RMSE = mean((linear - actual)^2) %>% sqrt()
+  )
+# # A tibble: 1 × 2
+#   Random_Forest_RMSE Linear_RMSE
+#                <dbl>       <dbl>
+# 1             33427.      36733.
+
+# Both models perform similarly, and they do okay at predicting. The linear
+# model explains ~22% of the variation in the data. The model can clearly be
+# improved with some feature engineering and model diagnosis, so I'll move
+# forward with this for now.
+
