@@ -1,7 +1,7 @@
 # Libraries
 library(tidyverse) |> suppressMessages()
 library(RSQLite)
-library(randomForest)
+library(randomForest) |> suppressMessages()
 
 # Add custom functions
 source("functions.R")
@@ -86,7 +86,7 @@ season_totals <- player_games %>%
       Turnovers
     ),
     Seconds_lag_two = lag(Seconds, default = 0, order_by = Season),
-    Seconds_lag_three = lag(Seconds, n = 2, default = 0, order_by = Season),
+    Seconds_lag_three = lag(Seconds, n = 2, default = 0, order_by = Season)
   ) %>%
   rename(Seconds_lag_one = Seconds) %>%
   select(!c(
@@ -110,7 +110,7 @@ data <- player_info %>%
   ) %>%
   inner_join(response, by = c("Player_ID", "Season")) %>%
   group_by(Season) %>%
-  top_n(130, Fantasy_points) %>%
+  top_n(182, Fantasy_points) %>% # 182 corresponds to a 14 team league
   select(!c(Player_ID, Team_ID)) %>%
   mutate(
     Win_pct = Wins / (Wins + Losses),
@@ -149,10 +149,10 @@ tibble(actual = test$Seconds) %>%
 # # A tibble: 1 × 2
 #   Random_Forest_RMSE Linear_RMSE
 #                <dbl>       <dbl>
-# 1             33427.      36733.
+# 1             34042.      35817.
 
 # Both models perform similarly, and they do okay at predicting. The linear
-# model explains ~22% of the variation in the data. The model can clearly be
+# model explains ~27% of the variation in the data. The model can clearly be
 # improved with some feature engineering and model diagnosis, so I'll move
 # forward with this for now.
 
