@@ -8,7 +8,9 @@ source("functions.R")
 # Read in data
 conn <- dbConnect(RSQLite::SQLite(), "bball_db")
 player_games <- dbReadTable(conn, "player_games") %>%
-  tibble()
+  tibble() %>%
+  filter(Injured != 1) %>%
+  select(!c(Injured))
 team_games <- dbReadTable(conn, "team_games") %>%
   tibble() %>%
   select(!c(Win, Home, Season, Opponent_ID))
@@ -75,7 +77,7 @@ season_totals <- player_games %>%
   ) %>%
   group_by(Player_ID, Season) %>%
   summarize(
-    Games = n_distinct(Game_ID),
+    Games = n(),
     Seconds = sum(Seconds),
     Threes = sum(Threes),
     Three_Attempts = sum(Three_Attempts),
@@ -91,18 +93,42 @@ season_totals <- player_games %>%
     Turnovers = sum(Turnovers),
     Fouls = sum(Fouls),
     Points = sum(Points),
-    PM = mean(PM),
-    Injured = sum(Injured),
+    PM = sum(PM),
     Minutes_team = sum(Total_minutes),
+    Threes_team = sum(Threes_team),
+    Three_Attempts_team = sum(Three_Attempts_team),
+    Twos_team = sum(Twos_team),
     Two_Attempts_team = sum(Two_Attempts_team),
+    Freethrows_team = sum(Freethrows_team), 
     Freethrow_Attempts_team = sum(Freethrow_Attempts_team),
+    Offensive_Rebounds_team = sum(Offensive_Rebounds_team),
+    Deffensive_Rebounds_team = sum(Deffensive_Rebounds_team),
+    Assists_team = sum(Assists_team),
+    Steals_team = sum(Steals_team),
+    Blocks_team = sum(Blocks_team),
     Turnovers_team = sum(Turnovers_team),
+    Fouls_team = sum(Fouls_team),
+    Points_team = sum(Points_team),
+    Minutes_opponent = sum(Total_minutes_opponent),
+    Threes_opponent = sum(Threes_opponent),
+    Three_Attempts_opponent = sum(Three_Attempts_opponent),
+    Twos_opponent = sum(Twos_opponent),
+    Two_Attempts_opponent = sum(Two_Attempts_opponent),
+    Freethrows_opponent = sum(Freethrows_opponent), 
+    Freethrow_Attempts_opponent = sum(Freethrow_Attempts_opponent),
+    Offensive_Rebounds_opponent = sum(Offensive_Rebounds_opponent),
+    Deffensive_Rebounds_opponent = sum(Deffensive_Rebounds_opponent),
+    Assists_opponent = sum(Assists_opponent),
+    Steals_opponent = sum(Steals_opponent),
+    Blocks_opponent = sum(Blocks_opponent),
+    Turnovers_opponent = sum(Turnovers_opponent),
+    Fouls_opponent = sum(Fouls_opponent),
+    Points_opponent = sum(Points_opponent),
     Possessions = sum(Possessions),
     Pace = mean(Pace),
     Team_ID = last(Team_ID),
   ) %>%
   mutate(
-    Games_played = Games - Injured,
     # Approximate starting date of October 20
     Season_start = paste(Season, 10, 20, sep = "-") %>%
       as.Date() %>%
@@ -135,8 +161,4 @@ season_totals <- player_games %>%
   ) %>%
   group_by(Season) %>%
   top_n(156, Fantasy_points) %>% # 156 corresponds to a 12 team league
-  rename(Seconds_lag_one = Seconds) %>%
-  select(!c(
-    Games,
-    Injured
-  ))
+  rename(Seconds_lag_one = Seconds)
