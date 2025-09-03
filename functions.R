@@ -133,10 +133,7 @@ possessions_team <- function(
   list_check(adjustment)
 
   # If these are zero, we won't be able to compute
-  (
-    (OREB + O_DREB) != 0
-  ) |>
-    stopifnot()
+  stopifnot((OREB + O_DREB) != 0)
 
   # Pull default values
   adjust <- list(
@@ -222,21 +219,26 @@ usage <- function(
     modifyList(adjustment) |>
     pull_coefficient()
 
-  100 *
+  # If these are zero, we won't be able to compute
+  stopifnot((T_FGA + T_FTA * adjust("FTA") + T_TOV) != 0)
+
   (
-    FGA +
-    FTA * adjust("FTA") +
-    TOV
-  ) *
-  (
-    T_MP /
-    (MP * 5)
-  ) /
-  (
-    T_FGA +
-    T_FTA * adjust("FTA") +
-    T_TOV
-  )
+    (
+      FGA +
+      FTA * adjust("FTA") +
+      TOV
+    ) *
+    (
+      T_MP /
+      (MP * 5)
+    ) /
+    (
+      T_FGA +
+      T_FTA * adjust("FTA") +
+      T_TOV
+    )
+  ) |>
+    (\(.) (is.na(.) | is.nan(.)) |> ifelse(0, .))() # replace NA values with 0
 }
 
 # Pythagorean Wins, used to estimate final win percentage
