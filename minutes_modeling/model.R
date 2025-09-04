@@ -33,6 +33,7 @@ data <- player_info %>%
   select(!c(
     Player_ID,
     Team_ID,
+    Season_start,
     Points,
     Wins,
     Losses,
@@ -56,10 +57,9 @@ delta_train <- delta_data %>%
 delta_test <- delta_data %>%
   filter(Season >= 2023)
 
-
 # Try that with all interactions
 full_lm <- lm(Seconds ~ .^2, data = train)
-full_poisson <- glm(Seconds ~ .^2, data = train, family = poisson())
+full_poisson <- glm(Seconds ~ ., data = train, family = poisson())
 delta_lm <- lm(delta_Seconds ~ .^2, data = delta_train)
 
 # Complete Linear model
@@ -91,13 +91,13 @@ summary(transposed_lm)
 forest <- randomForest(Seconds ~ ., data = train, ntree = 1000)
 summary(forest)
 
-tibble(actual = test$Seconds, prev = test$Seconds_lag_one) %>%
+tibble(actual = train$Seconds, prev = train$Seconds_lag_one) %>%
   mutate(
-    Linear_Model = predict(full_lm, newdata = test),
-    Transposed_Model = predict(transposed_lm, newdata = test) %>% g_inv(),
-    Poisson_Model = predict(full_poisson, newdata = test),
-    Delta_Model = predict(delta_lm, newdata = test) + prev,
-    Random_forest = predict(forest, newdata = test)
+    Linear_Model = predict(full_lm, newdata = train),
+    Transposed_Model = predict(transposed_lm, newdata = train) %>% g_inv(),
+    Poisson_Model = predict(full_poisson, newdata = train),
+    Delta_Model = predict(delta_lm, newdata = train) + prev,
+    Random_forest = predict(forest, newdata = train)
   ) %>%
   summarize(
     Linear_RMSE = mean((actual - Linear_Model)^2) %>% sqrt(),
@@ -106,3 +106,27 @@ tibble(actual = test$Seconds, prev = test$Seconds_lag_one) %>%
     Delta_RMSE = mean((actual - Delta_Model)^2) %>% sqrt(),
     RF_RMSE = mean((actual - Random_forest)^2) %>% sqrt()
   )
+
+tibble(actual = train$Seconds, prev = train$Seconds_lag_one) %>%
+  mutate(
+    Linear_Model = predict(full_lm, newdata = train) - actual,
+    Transposed_Model = predict(transposed_lm, newdata = train) %>% g_inv() - actual,
+    Poisson_Model = predict(full_poisson, newdata = train) - actual,
+    Delta_Model = predict(delta_lm, newdata = train) + prev - actual,
+    Random_forest = predict(forest, newdata = train) - actual
+  ) %>%
+  select(!c(actual, prev)) %>%
+  (\(df)
+    tibble(
+      "model" = colnames(df),
+      "min" = apply(df, 2, min) / 60,
+      "1%" = apply(df, 2, \(.) quantile(., probs = 0.01)) / 60,
+      "25%" = apply(df, 2, \(.) quantile(., probs = 0.25)) / 60,
+      "mean" = apply(df, 2, mean) / 60,
+      "median" = apply(df, 2, median) / 60,
+      "75%" = apply(df, 2, \(.) quantile(., probs = 0.75)) / 60,
+      "99%" = apply(df, 2, \(.) quantile(., probs = 0.99)) / 60,
+      "max" = apply(df, 2, max) / 60,
+      "sd" = apply(df, 2, sd) / 60
+    )
+  )()
