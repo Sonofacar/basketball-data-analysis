@@ -3,6 +3,7 @@ library(tidyverse) |> suppressMessages()
 library(randomForest) |> suppressMessages()
 library(glmnet) |> suppressMessages()
 library(ggfortify)
+library(car) |> suppressMessages()
 
 # Add custom functions
 source("functions.R")
@@ -17,8 +18,8 @@ response <- season_totals %>%
   mutate(Season = Season - 1)
 
 # Merge Data and perform final feature engineering
-data <- player_info %>%
-  inner_join(season_totals, by = c("Player_ID")) %>%
+data <- season_totals %>%
+  inner_join(player_info , by = c("Player_ID")) %>%
   inner_join(
     team_info,
     by = c("Team_ID", "Season"),
@@ -44,8 +45,12 @@ data <- player_info %>%
   drop_na()
 
 delta_data <- data %>%
-  mutate(delta_Seconds = Seconds - Seconds_lag_one) %>%
-  select(!c(Seconds))
+  mutate(
+    delta_Seconds = Seconds - Seconds_lag_one,
+    delta_Seconds_lag_one = Seconds_lag_one - Seconds_lag_two,
+    delta_Seconds_lag_two = Seconds_lag_two - Seconds_lag_three
+  ) %>%
+  select(!c(Seconds, Seconds_lag_one, Seconds_lag_two, Seconds_lag_three))
 
 # Split data into training and test sets
 train <- data %>%
@@ -96,7 +101,7 @@ tibble(actual = train$Seconds, prev = train$Seconds_lag_one) %>%
     Linear_Model = predict(full_lm, newdata = train),
     Transposed_Model = predict(transposed_lm, newdata = train) %>% g_inv(),
     Poisson_Model = predict(full_poisson, newdata = train),
-    Delta_Model = predict(delta_lm, newdata = train) + prev,
+    Delta_Model = predict(delta_lm, newdata = delta_train) + prev,
     Random_forest = predict(forest, newdata = train)
   ) %>%
   summarize(
@@ -112,7 +117,7 @@ tibble(actual = train$Seconds, prev = train$Seconds_lag_one) %>%
     Linear_Model = predict(full_lm, newdata = train) - actual,
     Transposed_Model = predict(transposed_lm, newdata = train) %>% g_inv() - actual,
     Poisson_Model = predict(full_poisson, newdata = train) - actual,
-    Delta_Model = predict(delta_lm, newdata = train) + prev - actual,
+    Delta_Model = predict(delta_lm, newdata = delta_train) + prev - actual,
     Random_forest = predict(forest, newdata = train) - actual
   ) %>%
   select(!c(actual, prev)) %>%
@@ -130,3 +135,45 @@ tibble(actual = train$Seconds, prev = train$Seconds_lag_one) %>%
       "sd" = apply(df, 2, sd) / 60
     )
   )()
+
+# While the linear model is not as good as the transposed model, it performs
+# adequately. In the interest of using a simple model, we will continue with
+# that model. We may also try the delta model in the future; it seems to do
+# slightly worse but might have a more sound approach.
+
+# Visualize partial regression plots for each variable
+lm(Seconds ~ ., data = train) %>%
+  avPlots()
+
+# Do the same thing for the delta model
+lm(delta_Seconds ~ ., data = delta_train) %>%
+  avPlots()
+
+# Potentially remove outliers:
+# dataset  Row  Player_ID  Season
+# both     1    1          2004
+# both     6    1          2009
+# delta    21   3          2010
+# normal   22   3          2011
+# delta    34   4          2016
+# normal   35   4          2017
+# These points create clusters in the following variables:
+# - Minutes_team
+# - Threes_team
+# - Twos_team
+# - Freethrows_team
+# - Points_team
+# - Minutes_opponent
+# - Threes_opponent
+# - Twos_opponent
+# - Freethrows_opponent
+# - Points_opponent
+
+# I will opt to remove these observations now since they appear to be
+# exeptionally extreme.
+drop <- c(1, 6, 22, 35)
+delta_drop <- c(1, 6, 21, 34)
+train <- train %>%
+  filter(!row_number() %in% drop)
+delta_train <- delta_train %>%
+  filter(!row_number() %in% delta_drop)
