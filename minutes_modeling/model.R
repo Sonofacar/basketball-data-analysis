@@ -208,3 +208,38 @@ final_delta <- step(
   scope = list(upper = full_delta, lower = base_delta),
   direction = "both"
 )
+
+# Compare RMSE of final models
+tibble(actual = test$Seconds, prev = test$Seconds_lag_one) %>%
+  mutate(
+    Linear_Model = predict(final_linear, newdata = test),
+    Delta_Model = predict(final_delta, newdata = delta_test) + prev,
+    Random_forest = predict(forest, newdata = test)
+  ) %>%
+  summarize(
+    Linear_RMSE = mean((actual - Linear_Model)^2) %>% sqrt(),
+    Delta_RMSE = mean((actual - Delta_Model)^2) %>% sqrt(),
+    RF_RMSE = mean((actual - Random_forest)^2) %>% sqrt()
+  )
+
+tibble(actual = test$Seconds, prev = test$Seconds_lag_one) %>%
+  mutate(
+    Linear_Model = predict(final_linear, newdata = test) - actual,
+    Delta_Model = predict(final_delta, newdata = delta_test) + prev - actual,
+    Random_forest = predict(forest, newdata = test) - actual
+  ) %>%
+  select(!c(actual, prev)) %>%
+  (\(df)
+    tibble(
+      "model" = colnames(df),
+      "min" = apply(df, 2, min) / 60,
+      "1%" = apply(df, 2, \(.) quantile(., probs = 0.01)) / 60,
+      "25%" = apply(df, 2, \(.) quantile(., probs = 0.25)) / 60,
+      "mean" = apply(df, 2, mean) / 60,
+      "median" = apply(df, 2, median) / 60,
+      "75%" = apply(df, 2, \(.) quantile(., probs = 0.75)) / 60,
+      "99%" = apply(df, 2, \(.) quantile(., probs = 0.99)) / 60,
+      "max" = apply(df, 2, max) / 60,
+      "sd" = apply(df, 2, sd) / 60
+    )
+  )()
