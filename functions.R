@@ -259,3 +259,21 @@ pythagorean_wins <- function(T_PTS = 0, O_PTS = 0, adjustment = list()) {
   )
 }
 
+# EWMA (exponentially weighted moving average), used for data manipulation
+point_ewma <- function(x, n, weight = 2 / (n + 1)) {
+  x[!is.na(x)] |>
+    (\(v)
+      min(length(v), n) |>
+        (\(N)
+          if ((N - 1) > 0) {
+            weight * v[1] + (1 - weight) * point_ewma(v[-1], N - 1, weight)
+          } else {
+            weight * x[1]
+          }
+        )()
+    )()
+}
+
+ewma <- function(x, n, weight = 2/(n+1)) {
+  sapply(length(x):1, \(i) point_ewma(x[i:(i+n-1)], n, weight)) |> rev()
+}
