@@ -149,15 +149,7 @@ lm(Seconds ~ ., data = train) %>%
 lm(delta_Seconds ~ ., data = delta_train) %>%
   avPlots()
 
-# Potentially remove outliers:
-# dataset  Row  Player_ID  Season
-# both     1    1          2004
-# both     6    1          2009
-# delta    21   3          2010
-# normal   22   3          2011
-# delta    34   4          2016
-# normal   35   4          2017
-# These points create clusters in the following variables:
+# There is odd clustering happening in these variables:
 # - Minutes_team
 # - Threes_team
 # - Twos_team
@@ -169,11 +161,50 @@ lm(delta_Seconds ~ ., data = delta_train) %>%
 # - Freethrows_opponent
 # - Points_opponent
 
-# I will opt to remove these observations now since they appear to be
-# exeptionally extreme.
-drop <- c(1, 6, 22, 35)
-delta_drop <- c(1, 6, 21, 34)
+# We'll just drop these variables because they cause problems even if we take
+# these points out.
 train <- train %>%
-  filter(!row_number() %in% drop)
+  select(!c(
+    Minutes_team,
+    Threes_team,
+    Twos_team,
+    Freethrows_team,
+    Points_team,
+    Minutes_opponent,
+    Threes_opponent,
+    Twos_opponent,
+    Freethrows_opponent,
+    Points_opponent
+  ))
 delta_train <- delta_train %>%
-  filter(!row_number() %in% delta_drop)
+  select(!c(
+    Minutes_team,
+    Threes_team,
+    Twos_team,
+    Freethrows_team,
+    Points_team,
+    Minutes_opponent,
+    Threes_opponent,
+    Twos_opponent,
+    Freethrows_opponent,
+    Points_opponent
+  ))
+
+# From here, let's make models and select variables.
+#
+# Note: we start from a base model and largely do forward selection because
+# the computation would take a long time otherwise.
+full_linear <- lm(Seconds ~ .^2, data = train)
+base_linear <- lm(Seconds ~ 1, data = train)
+final_linear <- step(
+  base_linear,
+  scope = list(upper = full_linear, lower = base_linear),
+  direction = "both"
+)
+full_delta <- lm(delta_Seconds ~ .^2, data = delta_train)
+base_delta <- lm(delta_Seconds ~ 1, data = delta_train)
+final_delta <- step(
+  base_delta,
+  scope = list(upper = full_delta, lower = base_delta),
+  direction = "both"
+)
