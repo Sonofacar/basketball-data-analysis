@@ -2,6 +2,10 @@
 # Run in other scripts as:
 # `source("functions.R")`
 
+##################
+# Advanced Stats #
+##################
+
 # Utility function to pull a coefficient from a list
 pull_coefficient <- function(l = list()) {
   \(column) l[[column]]
@@ -259,6 +263,11 @@ pythagorean_wins <- function(T_PTS = 0, O_PTS = 0, adjustment = list()) {
   )
 }
 
+
+#######################
+# Feature Engineering #
+#######################
+
 # EWMA (exponentially weighted moving average), used for data manipulation
 point_ewma <- function(x, n, weight = 2 / (n + 1)) {
   x[!is.na(x)] |>
@@ -276,4 +285,18 @@ point_ewma <- function(x, n, weight = 2 / (n + 1)) {
 
 ewma <- function(x, n, weight = 2/(n+1)) {
   sapply(length(x):1, \(i) point_ewma(x[i:(i+n-1)], n, weight)) |> rev()
+}
+
+# Lag a simple vector (x) by n spaces, filling with 0s
+lag_vector <- function(x, n = 1) {
+  rev(x) |>
+    (\(v) v[(n + 1):(length(v) + n)])() |>
+    rev() |>
+    (\(v) replace(v, is.na(v), 0))()
+}
+
+# Apply a function to the past n occurances of the provided vector
+roll <- function(x, n, func) {
+  sapply(0:(n - 1), \(.) lag_vector(x, .)) |>
+    apply(1, func)
 }
