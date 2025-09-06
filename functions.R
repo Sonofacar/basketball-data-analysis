@@ -297,6 +297,10 @@ lag_vector <- function(x, n = 1) {
 
 # Apply a function to the past n occurances of the provided vector
 roll <- function(x, n, func) {
-  sapply(0:(n - 1), \(.) lag_vector(x, .)) |>
-    apply(1, func)
+  (min(n, length(x)) - 1) |>
+    seq(from = 0, to = _, by = 1) |>
+    sapply(\(.) lag_vector(x, .)) |>
+    as.matrix() |>
+    apply(1, func) |>
+    (\(v) replace(v, is.na(v), 0))()
 }
