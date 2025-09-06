@@ -157,8 +157,10 @@ season_totals <- player_games %>%
       Turnovers_team
     ),
     Seconds_lag_two = lag(Seconds, default = 0, order_by = Season),
-    Seconds_lag_three = lag(Seconds, n = 2, default = 0, order_by = Season)
+    Seconds_lag_three = lag(Seconds, n = 2, default = 0, order_by = Season),
+    Seconds_lag_four = lag(Seconds, n = 3, default = 0, order_by = Season),
+    Seconds_lag_five = lag(Seconds, n = 4, default = 0, order_by = Season),
+    Seconds_lag_six = lag(Seconds, n = 5, default = 0, order_by = Season)
   ) %>%
-  group_by(Season) %>%
   top_n(156, Fantasy_points) %>% # 156 corresponds to a 12 team league
   rename(Seconds_lag_one = Seconds)
