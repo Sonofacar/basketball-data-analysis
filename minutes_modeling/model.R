@@ -384,12 +384,15 @@ delta_train <- delta_train %>%
 # From here, let's make models and select variables.
 #
 # Note: we start from a base model and largely do forward selection because
-# the computation would take a long time otherwise.
+# the computation would take a long time otherwise. Along the same vein,
+# using BIC instead of AIC tremendously helps in computation and outputs
+# a simpler model.
 full_linear <- lm(Seconds ~ .^2, data = train)
 base_linear <- lm(Seconds ~ 1, data = train)
 final_linear <- step(
   base_linear,
   scope = list(upper = full_linear, lower = base_linear),
+  k = log(nrow(train)),
   direction = "both"
 )
 full_delta <- lm(delta_Seconds ~ .^2, data = delta_train)
@@ -397,6 +400,7 @@ base_delta <- lm(delta_Seconds ~ 1, data = delta_train)
 final_delta <- step(
   base_delta,
   scope = list(upper = full_delta, lower = base_delta),
+  k = log(nrow(delta_train)),
   direction = "both"
 )
 
