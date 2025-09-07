@@ -33,6 +33,14 @@ data <- season_totals %>%
     Experience = (Season_start - Debut_Date) / 365,
     is_2011 = (Season == 2011),
     is_2012 = (Season == 2012),
+    rolling_games_sum_2 = roll(Games, 2, sum),
+    rolling_games_sum_3 = roll(Games, 3, sum),
+    rolling_games_sum_4 = roll(Games, 4, sum),
+    rolling_games_sum_5 = roll(Games, 5, sum),
+    ewma_games_2 = ewma(Games, 2),
+    ewma_games_3 = ewma(Games, 3),
+    ewma_games_4 = ewma(Games, 4),
+    ewma_games_5 = ewma(Games, 5),
     ewma_2 = ewma(Seconds_lag_one, 2),
     ewma_2_lag_one = lag(ewma_2, n = 1, default = 0, order_by = Season),
     ewma_2_lag_two = lag(ewma_2, n = 2, default = 0, order_by = Season),
@@ -49,22 +57,6 @@ data <- season_totals %>%
     ewma_5_lag_one = lag(ewma_5, n = 1, default = 0, order_by = Season), 
     ewma_5_lag_two = lag(ewma_5, n = 2, default = 0, order_by = Season), 
     ewma_5_lag_three = lag(ewma_5, n = 3, default = 0, order_by = Season), 
-    rolling_mean_2 = roll(Seconds_lag_one, 2, mean),
-    rolling_mean_2_lag_one = lag(rolling_mean_2, n = 1, default = 0, order_by = Season),
-    rolling_mean_2_lag_two = lag(rolling_mean_2, n = 2, default = 0, order_by = Season),
-    rolling_mean_2_lag_three = lag(rolling_mean_2, n = 3, default = 0, order_by = Season),
-    rolling_mean_3 = roll(Seconds_lag_one, 3, mean),
-    rolling_mean_3_lag_one = lag(rolling_mean_3, n = 1, default = 0, order_by = Season),
-    rolling_mean_3_lag_two = lag(rolling_mean_3, n = 2, default = 0, order_by = Season),
-    rolling_mean_3_lag_three = lag(rolling_mean_3, n = 3, default = 0, order_by = Season),
-    rolling_mean_4 = roll(Seconds_lag_one, 4, mean),
-    rolling_mean_4_lag_one = lag(rolling_mean_4, n = 1, default = 0, order_by = Season),
-    rolling_mean_4_lag_two = lag(rolling_mean_4, n = 2, default = 0, order_by = Season),
-    rolling_mean_4_lag_three = lag(rolling_mean_4, n = 3, default = 0, order_by = Season),
-    rolling_mean_5 = roll(Seconds_lag_one, 5, mean),
-    rolling_mean_5_lag_one = lag(rolling_mean_5, n = 1, default = 0, order_by = Season),
-    rolling_mean_5_lag_two = lag(rolling_mean_5, n = 2, default = 0, order_by = Season),
-    rolling_mean_5_lag_three = lag(rolling_mean_5, n = 3, default = 0, order_by = Season),
     rolling_var_2 = roll(Seconds_lag_one, 2, var),
     rolling_var_2_lag_one = lag(rolling_var_2, n = 1, default = 0, order_by = Season),
     rolling_var_2_lag_two = lag(rolling_var_2, n = 2, default = 0, order_by = Season),
@@ -114,6 +106,12 @@ data <- season_totals %>%
 
 delta_data <- data %>%
   mutate(
+    delta_rolling_games_sum_2 = rolling_games_sum_2 - rolling_games_sum_3,
+    delta_rolling_games_sum_3 = rolling_games_sum_3 - rolling_games_sum_4,
+    delta_rolling_games_sum_4 = rolling_games_sum_4 - rolling_games_sum_5,
+    delta_ewma_games_2 = ewma_games_2 - ewma_games_3,
+    delta_ewma_games_3 = ewma_games_3 - ewma_games_4,
+    delta_ewma_games_4 = ewma_games_4 - ewma_games_5,
     delta_Seconds = Seconds - Seconds_lag_one,
     delta_Seconds_lag_one = Seconds_lag_one - Seconds_lag_two,
     delta_Seconds_lag_two = Seconds_lag_two - Seconds_lag_three,
@@ -132,18 +130,6 @@ delta_data <- data %>%
     delta_ewma_5 = ewma_5 - ewma_5_lag_one,
     delta_ewma_5_lag_one = ewma_5_lag_one - ewma_5_lag_two, 
     delta_ewma_5_lag_two = ewma_5_lag_two - ewma_5_lag_three, 
-    delta_rolling_mean_2 = rolling_mean_2 - rolling_mean_2_lag_one,
-    delta_rolling_mean_2_lag_one = rolling_mean_2_lag_one - rolling_mean_2_lag_two,
-    delta_rolling_mean_2_lag_two = rolling_mean_2_lag_two - rolling_mean_2_lag_three,
-    delta_rolling_mean_3 = rolling_mean_3 - rolling_mean_3_lag_one,
-    delta_rolling_mean_3_lag_one = rolling_mean_3_lag_one - rolling_mean_3_lag_two,
-    delta_rolling_mean_3_lag_two = rolling_mean_3_lag_two - rolling_mean_3_lag_three,
-    delta_rolling_mean_4 = rolling_mean_4 - rolling_mean_4_lag_one,
-    delta_rolling_mean_4_lag_one = rolling_mean_4_lag_one - rolling_mean_4_lag_two,
-    delta_rolling_mean_4_lag_two = rolling_mean_4_lag_two - rolling_mean_4_lag_three,
-    delta_rolling_mean_5 = rolling_mean_5 - rolling_mean_5_lag_one,
-    delta_rolling_mean_5_lag_one = rolling_mean_5_lag_one - rolling_mean_5_lag_two,
-    delta_rolling_mean_5_lag_two = rolling_mean_5_lag_two - rolling_mean_5_lag_three,
     delta_rolling_var_2 = rolling_var_2 - rolling_var_2_lag_one,
     delta_rolling_var_2_lag_one = rolling_var_2_lag_one - rolling_var_2_lag_two,
     delta_rolling_var_2_lag_two = rolling_var_2_lag_two - rolling_var_2_lag_three,
@@ -177,6 +163,14 @@ delta_data <- data %>%
     Seconds_lag_four,
     Seconds_lag_five,
     Seconds_lag_six,
+    rolling_games_sum_2,
+    rolling_games_sum_3,
+    rolling_games_sum_4,
+    rolling_games_sum_5,
+    ewma_games_2,
+    ewma_games_3,
+    ewma_games_4,
+    ewma_games_5,
     ewma_2,
     ewma_2_lag_one,
     ewma_2_lag_two,
@@ -193,22 +187,6 @@ delta_data <- data %>%
     ewma_5_lag_one, 
     ewma_5_lag_two, 
     ewma_5_lag_three, 
-    rolling_mean_2,
-    rolling_mean_2_lag_one,
-    rolling_mean_2_lag_two,
-    rolling_mean_2_lag_three,
-    rolling_mean_3,
-    rolling_mean_3_lag_one,
-    rolling_mean_3_lag_two,
-    rolling_mean_3_lag_three,
-    rolling_mean_4,
-    rolling_mean_4_lag_one,
-    rolling_mean_4_lag_two,
-    rolling_mean_4_lag_three,
-    rolling_mean_5,
-    rolling_mean_5_lag_one,
-    rolling_mean_5_lag_two,
-    rolling_mean_5_lag_three,
     rolling_var_2,
     rolling_var_2_lag_one,
     rolling_var_2_lag_two,
@@ -253,84 +231,9 @@ delta_train <- delta_data %>%
 delta_test <- delta_data %>%
   filter(Season >= 2023)
 
-# Try that with all interactions
-full_lm <- lm(Seconds ~ .^2, data = train)
-full_poisson <- glm(Seconds ~ ., data = train, family = poisson())
-delta_lm <- lm(delta_Seconds ~ .^2, data = delta_train)
-
-# Complete Linear model
-autoplot(full_lm)
-summary(full_lm)
-
-# Linear model of change in seconds
-autoplot(delta_lm)
-summary(delta_lm)
-
-# Complete Poisson model
-autoplot(full_poisson)
-summary(full_poisson)
-(1 - full_poisson$deviance / full_poisson$null.deviance) %>%
-  print()
-
-# Scale coefficient to transpose all Seconds values below 1 before the exponent,
-# leaving some wiggle room for future outliers.
-m <- 1.1 * max(train$Seconds)
-g <- \(.) exp(./m)
-g_inv <- \(.) log(.) %>% `*`(m)
-
-# Complete transposed Linear model
-transposed_lm <- lm(g(Seconds) ~ .^2, data = train)
-autoplot(transposed_lm)
-summary(transposed_lm)
-
 # Random Forest
 forest <- randomForest(Seconds ~ ., data = train, ntree = 1000)
 summary(forest)
-
-tibble(actual = train$Seconds, prev = train$Seconds_lag_one) %>%
-  mutate(
-    Linear_Model = predict(full_lm, newdata = train),
-    Transposed_Model = predict(transposed_lm, newdata = train) %>% g_inv(),
-    Poisson_Model = predict(full_poisson, newdata = train),
-    Delta_Model = predict(delta_lm, newdata = delta_train) + prev,
-    Random_forest = predict(forest, newdata = train)
-  ) %>%
-  summarize(
-    Linear_RMSE = mean((actual - Linear_Model)^2) %>% sqrt(),
-    Transposed_RMSE = mean((actual - Transposed_Model)^2) %>% sqrt(),
-    Poisson_RMSE = mean((actual - Poisson_Model)^2) %>% sqrt(),
-    Delta_RMSE = mean((actual - Delta_Model)^2) %>% sqrt(),
-    RF_RMSE = mean((actual - Random_forest)^2) %>% sqrt()
-  )
-
-tibble(actual = train$Seconds, prev = train$Seconds_lag_one) %>%
-  mutate(
-    Linear_Model = predict(full_lm, newdata = train) - actual,
-    Transposed_Model = predict(transposed_lm, newdata = train) %>% g_inv() - actual,
-    Poisson_Model = predict(full_poisson, newdata = train) - actual,
-    Delta_Model = predict(delta_lm, newdata = delta_train) + prev - actual,
-    Random_forest = predict(forest, newdata = train) - actual
-  ) %>%
-  select(!c(actual, prev)) %>%
-  (\(df)
-    tibble(
-      "model" = colnames(df),
-      "min" = apply(df, 2, min) / 60,
-      "1%" = apply(df, 2, \(.) quantile(., probs = 0.01)) / 60,
-      "25%" = apply(df, 2, \(.) quantile(., probs = 0.25)) / 60,
-      "mean" = apply(df, 2, mean) / 60,
-      "median" = apply(df, 2, median) / 60,
-      "75%" = apply(df, 2, \(.) quantile(., probs = 0.75)) / 60,
-      "99%" = apply(df, 2, \(.) quantile(., probs = 0.99)) / 60,
-      "max" = apply(df, 2, max) / 60,
-      "sd" = apply(df, 2, sd) / 60
-    )
-  )()
-
-# While the linear model is not as good as the transposed model, it performs
-# adequately. In the interest of using a simple model, we will continue with
-# that model. We may also try the delta model in the future; it seems to do
-# slightly worse but might have a more sound approach.
 
 # Visualize partial regression plots for each variable
 lm(Seconds ~ ., data = train) %>%
