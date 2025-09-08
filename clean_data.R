@@ -17,7 +17,6 @@ team_games <- dbReadTable(conn, "team_games") %>%
 player_info <- dbReadTable(conn, "player_info") %>%
   tibble() %>%
   select(!c(
-    Name,
     High_School,
     College,
     Career_Seasons,
