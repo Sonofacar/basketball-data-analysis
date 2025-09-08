@@ -33,10 +33,87 @@ data <- season_totals %>%
     Experience = (Season_start - Debut_Date) / 365,
     is_2011 = (Season == 2011),
     is_2012 = (Season == 2012),
+    games_lag_one = lag(Games, n = 1, default = 0, order_by = Season),
+    games_lag_two = lag(Games, n = 2, default = 0, order_by = Season),
+    games_lag_three = lag(Games, n = 3, default = 0, order_by = Season),
+    games_lag_four = lag(Games, n = 4, default = 0, order_by = Season),
+    games_lag_five = lag(Games, n = 5, default = 0, order_by = Season),
     rolling_games_sum_2 = roll(Games, 2, sum),
+    rolling_games_sum_2_lag_one = lag(
+      rolling_games_sum_2,
+      n = 1,
+      default = 0,
+      order_by = Season
+    ),
+    rolling_games_sum_2_lag_two = lag(
+      rolling_games_sum_2,
+      n = 2,
+      default = 0,
+      order_by = Season
+    ),
+    rolling_games_sum_2_lag_three = lag(
+      rolling_games_sum_2,
+      n = 3,
+      default = 0,
+      order_by = Season
+    ),
     rolling_games_sum_3 = roll(Games, 3, sum),
+    rolling_games_sum_3_lag_one = lag(
+      rolling_games_sum_3,
+      n = 1,
+      default = 0,
+      order_by = Season
+    ),
+    rolling_games_sum_3_lag_two = lag(
+      rolling_games_sum_3,
+      n = 2,
+      default = 0,
+      order_by = Season
+    ),
+    rolling_games_sum_3_lag_three = lag(
+      rolling_games_sum_3,
+      n = 3,
+      default = 0,
+      order_by = Season
+    ),
     rolling_games_sum_4 = roll(Games, 4, sum),
+    rolling_games_sum_4_lag_one = lag(
+      rolling_games_sum_4,
+      n = 1,
+      default = 0,
+      order_by = Season
+    ),
+    rolling_games_sum_4_lag_two = lag(
+      rolling_games_sum_4,
+      n = 2,
+      default = 0,
+      order_by = Season
+    ),
+    rolling_games_sum_4_lag_three = lag(
+      rolling_games_sum_4,
+      n = 3,
+      default = 0,
+      order_by = Season
+    ),
     rolling_games_sum_5 = roll(Games, 5, sum),
+    rolling_games_sum_5_lag_one = lag(
+      rolling_games_sum_5,
+      n = 1,
+      default = 0,
+      order_by = Season
+    ),
+    rolling_games_sum_5_lag_two = lag(
+      rolling_games_sum_5,
+      n = 2,
+      default = 0,
+      order_by = Season
+    ),
+    rolling_games_sum_5_lag_three = lag(
+      rolling_games_sum_5,
+      n = 3,
+      default = 0,
+      order_by = Season
+    ),
     ewma_games_2 = ewma(Games, 2),
     ewma_games_3 = ewma(Games, 3),
     ewma_games_4 = ewma(Games, 4),
@@ -106,9 +183,58 @@ data <- season_totals %>%
 
 delta_data <- data %>%
   mutate(
-    delta_rolling_games_sum_2 = rolling_games_sum_2 - rolling_games_sum_3,
-    delta_rolling_games_sum_3 = rolling_games_sum_3 - rolling_games_sum_4,
-    delta_rolling_games_sum_4 = rolling_games_sum_4 - rolling_games_sum_5,
+    delta_games_lag_one = games_lag_one - games_lag_two,
+    delta_games_lag_two = games_lag_two - games_lag_three,
+    delta_games_lag_three = games_lag_three - games_lag_four,
+    delta_games_lag_four = games_lag_four - games_lag_five,
+    delta_rolling_games_sum_2_lag_one = `-`(
+      rolling_games_sum_2,
+      rolling_games_sum_2_lag_one
+    ),
+    delta_rolling_games_sum_2_lag_two = `-`(
+      rolling_games_sum_2_lag_one,
+      rolling_games_sum_2_lag_two
+    ),
+    delta_rolling_games_sum_2_lag_three = `-`(
+      rolling_games_sum_2_lag_two,
+      rolling_games_sum_2_lag_three
+    ),
+    delta_rolling_games_sum_3_lag_one = `-`(
+      rolling_games_sum_3,
+      rolling_games_sum_3_lag_one
+    ),
+    delta_rolling_games_sum_3_lag_two = `-`(
+      rolling_games_sum_3_lag_one,
+      rolling_games_sum_3_lag_two
+    ),
+    delta_rolling_games_sum_3_lag_three = `-`(
+      rolling_games_sum_3_lag_two,
+      rolling_games_sum_3_lag_three
+    ),
+    delta_rolling_games_sum_4_lag_one = `-`(
+      rolling_games_sum_4,
+      rolling_games_sum_4_lag_one
+    ),
+    delta_rolling_games_sum_4_lag_two = `-`(
+      rolling_games_sum_4_lag_one,
+      rolling_games_sum_4_lag_two
+    ),
+    delta_rolling_games_sum_4_lag_three = `-`(
+      rolling_games_sum_4_lag_two,
+      rolling_games_sum_4_lag_three
+    ),
+    delta_rolling_games_sum_5_lag_one = `-`(
+      rolling_games_sum_5,
+      rolling_games_sum_5_lag_one
+    ),
+    delta_rolling_games_sum_5_lag_two = `-`(
+      rolling_games_sum_5_lag_one,
+      rolling_games_sum_5_lag_two
+    ),
+    delta_rolling_games_sum_5_lag_three = `-`(
+      rolling_games_sum_5_lag_two,
+      rolling_games_sum_5_lag_three
+    ),
     delta_ewma_games_2 = ewma_games_2 - ewma_games_3,
     delta_ewma_games_3 = ewma_games_3 - ewma_games_4,
     delta_ewma_games_4 = ewma_games_4 - ewma_games_5,
@@ -163,6 +289,11 @@ delta_data <- data %>%
     Seconds_lag_four,
     Seconds_lag_five,
     Seconds_lag_six,
+    games_lag_one,
+    games_lag_two,
+    games_lag_three,
+    games_lag_four,
+    games_lag_five,
     rolling_games_sum_2,
     rolling_games_sum_3,
     rolling_games_sum_4,
