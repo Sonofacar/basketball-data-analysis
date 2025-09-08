@@ -354,13 +354,13 @@ delta_data <- data %>%
 
 # Split data into training and test sets
 train <- data %>%
-  filter(Season < 2023)
+  filter(Season < (max(Season) - 1))
 test <- data %>%
-  filter(Season >= 2023)
+  filter(Season >= (max(Season) - 1))
 delta_train <- delta_data %>%
-  filter(Season < 2023)
+  filter(Season < (max(Season) - 1))
 delta_test <- delta_data %>%
-  filter(Season >= 2023)
+  filter(Season >= (max(Season) - 1))
 
 # Random Forest
 forest <- randomForest(Seconds ~ ., data = train, ntree = 1000)
