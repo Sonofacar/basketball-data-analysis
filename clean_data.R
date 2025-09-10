@@ -161,5 +161,7 @@ season_totals <- player_games %>%
     Seconds_lag_five = lag(Seconds, n = 4, default = 0, order_by = Season),
     Seconds_lag_six = lag(Seconds, n = 5, default = 0, order_by = Season)
   ) %>%
+  ungroup() %>%
+  group_by(Season) %>%
   top_n(156, Fantasy_points) %>% # 156 corresponds to a 12 team league
   rename(Seconds_lag_one = Seconds)
