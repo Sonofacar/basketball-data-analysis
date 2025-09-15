@@ -386,12 +386,12 @@ lm(delta_Seconds ~ ., data = delta_train) %>%
   avPlots()
 
 # There is odd clustering happening in these variables:
-# - Minutes_team
+# - Seconds_team
 # - Threes_team
 # - Twos_team
 # - Freethrows_team
 # - Points_team
-# - Minutes_opponent
+# - Seconds_opponent
 # - Threes_opponent
 # - Twos_opponent
 # - Freethrows_opponent
@@ -401,12 +401,12 @@ lm(delta_Seconds ~ ., data = delta_train) %>%
 # these points out.
 train <- train %>%
   select(!c(
-    Minutes_team,
+    Seconds_team,
     Threes_team,
     Twos_team,
     Freethrows_team,
     Points_team,
-    Minutes_opponent,
+    Seconds_opponent,
     Threes_opponent,
     Twos_opponent,
     Freethrows_opponent,
@@ -414,12 +414,12 @@ train <- train %>%
   ))
 delta_train <- delta_train %>%
   select(!c(
-    Minutes_team,
+    Seconds_team,
     Threes_team,
     Twos_team,
     Freethrows_team,
     Points_team,
-    Minutes_opponent,
+    Seconds_opponent,
     Threes_opponent,
     Twos_opponent,
     Freethrows_opponent,
