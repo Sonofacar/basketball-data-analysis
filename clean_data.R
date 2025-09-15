@@ -8,9 +8,7 @@ source("functions.R")
 # Read in data
 conn <- dbConnect(RSQLite::SQLite(), "bball_db")
 player_games <- dbReadTable(conn, "player_games") %>%
-  tibble() %>%
-  filter(Injured != 1) %>%
-  select(!c(Injured))
+  tibble()
 team_games <- dbReadTable(conn, "team_games") %>%
   tibble() %>%
   select(!c(Win, Home, Season, Opponent_ID))
@@ -19,9 +17,7 @@ player_info <- dbReadTable(conn, "player_info") %>%
   select(!c(
     High_School,
     College,
-    Career_Seasons,
-    Draft_Team,
-    Teams
+    Draft_Team
   )) %>%
   mutate(
     Shoots = factor(Shoots),
@@ -59,20 +55,20 @@ season_totals <- player_games %>%
   ) %>%
   mutate(
     Possessions = possessions_team_precise(
-      Two_Attempts_team,
-      Twos_team,
+      Field_Goal_Attempts_team,
+      Field_Goals_team,
       Freethrow_Attempts_team,
       Offensive_Rebounds_team,
-      Deffensive_Rebounds_team,
+      Defensive_Rebounds_team,
       Turnovers_team,
-      Two_Attempts_opponent,
-      Twos_opponent,
+      Field_Goal_Attempts_opponent,
+      Field_Goals_opponent,
       Freethrow_Attempts_opponent,
       Offensive_Rebounds_opponent,
-      Deffensive_Rebounds_opponent,
+      Defensive_Rebounds_opponent,
       Turnovers_opponent
     ),
-    Pace = pace(Total_minutes, Possessions)
+    Pace = pace(Seconds_team / 60, Possessions)
   ) %>%
   group_by(Player_ID, Season) %>%
   summarize(
@@ -80,12 +76,12 @@ season_totals <- player_games %>%
     Seconds = sum(Seconds),
     Threes = sum(Threes),
     Three_Attempts = sum(Three_Attempts),
-    Twos = sum(Twos),
-    Two_Attempts = sum(Two_Attempts),
+    Field_Goals = sum(Field_Goals),
+    Field_Goal_Attempts = sum(Field_Goal_Attempts),
     Freethrows = sum(Freethrows), 
     Freethrow_Attempts = sum(Freethrow_Attempts),
     Offensive_Rebounds = sum(Offensive_Rebounds),
-    Deffensive_Rebounds = sum(Deffensive_Rebounds),
+    Defensive_Rebounds = sum(Defensive_Rebounds),
     Assists = sum(Assists),
     Steals = sum(Steals),
     Blocks = sum(Blocks),
@@ -93,30 +89,30 @@ season_totals <- player_games %>%
     Fouls = sum(Fouls),
     Points = sum(Points),
     PM = sum(PM),
-    Minutes_team = sum(Total_minutes),
+    Seconds_team = sum(Seconds_team),
     Threes_team = sum(Threes_team),
     Three_Attempts_team = sum(Three_Attempts_team),
-    Twos_team = sum(Twos_team),
-    Two_Attempts_team = sum(Two_Attempts_team),
+    Field_Goals_team = sum(Field_Goals_team),
+    Field_Goal_Attempts_team = sum(Field_Goal_Attempts_team),
     Freethrows_team = sum(Freethrows_team), 
     Freethrow_Attempts_team = sum(Freethrow_Attempts_team),
     Offensive_Rebounds_team = sum(Offensive_Rebounds_team),
-    Deffensive_Rebounds_team = sum(Deffensive_Rebounds_team),
+    Defensive_Rebounds_team = sum(Defensive_Rebounds_team),
     Assists_team = sum(Assists_team),
     Steals_team = sum(Steals_team),
     Blocks_team = sum(Blocks_team),
     Turnovers_team = sum(Turnovers_team),
     Fouls_team = sum(Fouls_team),
     Points_team = sum(Points_team),
-    Minutes_opponent = sum(Total_minutes_opponent),
+    Seconds_opponent = sum(Seconds_opponent),
     Threes_opponent = sum(Threes_opponent),
     Three_Attempts_opponent = sum(Three_Attempts_opponent),
-    Twos_opponent = sum(Twos_opponent),
-    Two_Attempts_opponent = sum(Two_Attempts_opponent),
+    Field_Goals_opponent = sum(Field_Goals_opponent),
+    Field_Goal_Attempts_opponent = sum(Field_Goal_Attempts_opponent),
     Freethrows_opponent = sum(Freethrows_opponent), 
     Freethrow_Attempts_opponent = sum(Freethrow_Attempts_opponent),
     Offensive_Rebounds_opponent = sum(Offensive_Rebounds_opponent),
-    Deffensive_Rebounds_opponent = sum(Deffensive_Rebounds_opponent),
+    Defensive_Rebounds_opponent = sum(Defensive_Rebounds_opponent),
     Assists_opponent = sum(Assists_opponent),
     Steals_opponent = sum(Steals_opponent),
     Blocks_opponent = sum(Blocks_opponent),
@@ -135,11 +131,11 @@ season_totals <- player_games %>%
     Fantasy_points = fantasy_points(
       Points,
       Threes,
-      Twos,
-      Two_Attempts,
+      Field_Goals,
+      Field_Goal_Attempts,
       Freethrow_Attempts,
       Freethrows,
-      Offensive_Rebounds + Deffensive_Rebounds,
+      Offensive_Rebounds + Defensive_Rebounds,
       Assists,
       Steals,
       Blocks,
@@ -147,11 +143,11 @@ season_totals <- player_games %>%
     ),
     Usage = usage(
       Seconds / 60,
-      Two_Attempts,
+      Field_Goal_Attempts,
       Freethrow_Attempts,
       Turnovers,
-      Minutes_team,
-      Two_Attempts_team,
+      Seconds_team / 60,
+      Field_Goal_Attempts_team,
       Freethrow_Attempts_team,
       Turnovers_team
     ),
@@ -163,5 +159,5 @@ season_totals <- player_games %>%
   ) %>%
   ungroup() %>%
   group_by(Season) %>%
-  top_n(156, Fantasy_points) %>% # 156 corresponds to a 12 team league
+  # top_n(156, Fantasy_points) %>% # 156 corresponds to a 12 team league
   rename(Seconds_lag_one = Seconds)
