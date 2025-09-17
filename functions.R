@@ -268,6 +268,11 @@ pythagorean_wins <- function(T_PTS = 0, O_PTS = 0, adjustment = list()) {
 # Feature Engineering #
 #######################
 
+# The following function are designed to imitate a moving average from time
+# series analysis and *must* be used properly. They are designed to be used
+# with data that is arranged in descending order according to time, meaning the
+# most recent time is first and the oldest observation is last.
+
 # EWMA (exponentially weighted moving average), used for data manipulation
 point_ewma <- function(x, n, weight = 2 / (n + 1)) {
   x[!is.na(x)] |>
@@ -299,12 +304,14 @@ lag_vector <- function(x, n = 1) {
 roll <- function(x, n, func) {
   seq_along(x) |>
     sapply(\(i) {
-      x[max(1, i - n + 1):i] |>
+      rev(x) |> 
+        (\(v) v[max(1, i - n + 1):i])() |>
         (\(v) {
           (n - length(v)) |>
             rep(0, times = _) |>
             c(v)
         })() |>
         func()
-    })
+    }) |>
+    rev()
 }

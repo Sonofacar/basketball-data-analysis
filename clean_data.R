@@ -123,6 +123,7 @@ season_totals <- player_games %>%
     Pace = mean(Pace),
     Team_ID = last(Team_ID),
   ) %>%
+  arrange(desc(Season)) %>%
   mutate(
     # Approximate starting date of October 20
     Season_start = paste(Season, 10, 20, sep = "-") %>%
