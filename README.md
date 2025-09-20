@@ -3,7 +3,7 @@
 This is a personal project to perform various analyses on basketball data,
 mostly focused on making better decisions when playing fantasy basketball. This
 requires data that can be webscraped using
-(this project)[https://github.com/Sonofacar/basketball-webscraper].
+[this project](https://github.com/Sonofacar/basketball-webscraper).
 
 Below is an explanation of the various analyses currently in this repository:
 
