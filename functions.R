@@ -337,5 +337,7 @@ roll <- function(x, n, func, by = c()) {
       } else {
         v
       }
-    })()
+    })() |>
+    # Replace all NAs with 0
+    (\(v) is.na(v) |> ifelse(0, v))()
 }
