@@ -27,240 +27,240 @@ list_check <- function(l) {
 
 # Fantasy points following the ESPN base line points system
 fantasy_points <- function(
-  PTS = 0,
-  threePM = 0,
-  FGA = 0,
-  FGM = 0,
-  FTA = 0,
-  FTM = 0,
-  REB = 0,
-  AST = 0,
-  STL = 0,
-  BLK = 0,
-  TOV = 0,
+  pts = 0,
+  threepm = 0,
+  fga = 0,
+  fgm = 0,
+  fta = 0,
+  ftm = 0,
+  reb = 0,
+  ast = 0,
+  stl = 0,
+  blk = 0,
+  tov = 0,
   point_mapping = list()
 ) {
   # Check for correct inputs
   numeric_check(
-    PTS,
-    threePM,
-    FGA,
-    FGM,
-    FTA,
-    FTM,
-    REB,
-    AST,
-    STL,
-    BLK,
-    TOV
+    pts,
+    threepm,
+    fga,
+    fgm,
+    fta,
+    ftm,
+    reb,
+    ast,
+    stl,
+    blk,
+    tov
   )
   list_check(point_mapping)
 
   # Define default point structure and add custom changes
   points <- list(
-    PTS = 1,
-    threePM = 1,
-    FGA = -1,
-    FGM = 2,
-    FTA = -1,
-    FTM = 1,
-    REB = 1,
-    AST = 2,
-    STL = 4,
-    BLK = 4,
-    TOV = -2
+    pts = 1,
+    threepm = 1,
+    fga = -1,
+    fgm = 2,
+    fta = -1,
+    ftm = 1,
+    reb = 1,
+    ast = 2,
+    stl = 4,
+    blk = 4,
+    tov = -2
   ) |>
     modifyList(point_mapping) |>
     pull_coefficient()
 
   (
-    PTS * points("PTS") +
-    threePM * points("threePM") +
-    FGA * points("FGA") +
-    FGM * points("FGM") +
-    FTA * points("FTA") +
-    FTM * points("FTM") +
-    REB * points("REB") +
-    AST * points("AST") +
-    STL * points("STL") +
-    BLK * points("BLK") +
-    TOV * points("TOV")
+    pts * points("pts") +
+      threepm * points("threepm") +
+      fga * points("fga") +
+      fgm * points("fgm") +
+      fta * points("fta") +
+      ftm * points("ftm") +
+      reb * points("reb") +
+      ast * points("ast") +
+      stl * points("stl") +
+      blk * points("blk") +
+      tov * points("tov")
   )
 }
 
 # Team possession estimation
 possessions_team_simple <- function(
-  FGA = 0,
-  FTA = 0,
-  OREB = 0,
-  TOV = 0,
+  fga = 0,
+  fta = 0,
+  oreb = 0,
+  tov = 0,
   adjustment = list()
 ) {
   # Check if input is valid
-  numeric_check(FGA, FTA, OREB, TOV)
+  numeric_check(fga, fta, oreb, tov)
   list_check(adjustment)
 
   adjust <- list(
-    FGA = 0.96,
-    FTA = 0.44
+    fga = 0.96,
+    fta = 0.44
   ) |>
     modifyList(adjustment) |>
     pull_coefficient()
 
   (
-    FGA * adjust("FGA") +
-    FTA * adjust("FTA") +
-    TOV -
-    OREB
+    fga * adjust("fga") +
+      fta * adjust("fta") +
+      tov -
+      oreb
   )
 }
 
 # More precise, but more complex calculation of possessions
 possessions_team <- function(
-  FGA = 0,
-  FG = 0,
-  FTA = 0,
-  OREB = 0,
-  TOV = 0,
-  O_DREB = 0,
+  fga = 0,
+  fg = 0,
+  fta = 0,
+  oreb = 0,
+  tov = 0,
+  o_dreb = 0,
   adjustment = list()
 ) {
   # Check for valid inputs
   numeric_check(
-    FGA,
-    FG,
-    FTA,
-    OREB,
-    TOV,
-    O_DREB
+    fga,
+    fg,
+    fta,
+    oreb,
+    tov,
+    o_dreb
   )
   list_check(adjustment)
 
   # If these are zero, we won't be able to compute
-  stopifnot((OREB + O_DREB) != 0)
+  stopifnot((oreb + o_dreb) != 0)
 
   # Pull default values
   adjust <- list(
-    FTA = 0.4,
-    REB = 1.07
+    fta = 0.4,
+    reb = 1.07
   ) |>
     modifyList(adjustment) |>
     pull_coefficient()
 
-  FGA +
-  FTA * adjust("FTA")
-  (OREB/(OREB + O_DREB)) * adjust("REB") *
-  (FGA - FG) +
-  TOV
+  fga +
+    fta * adjust("fta")
+  (oreb / (oreb + o_dreb)) *
+    adjust("reb") *
+    (fga - fg) +
+    tov
 }
 
 # Meta function that averages takes calculation for both teams and averages it
 # out to be more precise.
 possessions_team_precise <- function(
-  FGA = 0,
-  FG = 0,
-  FTA = 0,
-  OREB = 0,
-  DREB = 0,
-  TOV = 0,
-  O_FGA = 0,
-  O_FG = 0,
-  O_FTA = 0,
-  O_OREB = 0,
-  O_DREB = 0,
-  O_TOV = 0,
+  fga = 0,
+  fg = 0,
+  fta = 0,
+  oreb = 0,
+  dreb = 0,
+  tov = 0,
+  o_fga = 0,
+  o_fg = 0,
+  o_fta = 0,
+  o_oreb = 0,
+  o_dreb = 0,
+  o_tov = 0,
   adjustment = list()
 ) {
   # We don't need to check for input validity, but we do need to pass
   # adjustment list.
   mapply(
     mean,
-    possessions_team(FGA, FG, FTA, OREB, TOV, O_DREB, adjustment),
-    possessions_team(O_FGA, O_FG, O_FTA, O_OREB, O_TOV, DREB, adjustment)
+    possessions_team(fga, fg, fta, oreb, tov, o_dreb, adjustment),
+    possessions_team(o_fga, o_fg, o_fta, o_oreb, o_tov, dreb, adjustment)
   )
 }
 
 # Because there are multiple possession functions available, pace will need to
 # be given the possession value from the desired form.
-pace <- function(MIN = 0, POSS = 0)
-{
+pace <- function(min = 0, poss = 0) {
   # Check for valid input
-  numeric_check(MIN, POSS)
+  numeric_check(min, poss)
 
-  48 * 5 * POSS / MIN
+  48 * 5 * poss / min
 }
 
 # Usage
 usage <- function(
-  MP = 0,
-  FGA = 0,
-  FTA = 0,
-  TOV = 0,
-  T_MP = 0,
-  T_FGA = 0,
-  T_FTA = 0,
-  T_TOV = 0,
+  mp = 0,
+  fga = 0,
+  fta = 0,
+  tov = 0,
+  t_mp = 0,
+  t_fga = 0,
+  t_fta = 0,
+  t_tov = 0,
   adjustment = list()
 ) {
   # Check for valid input
   numeric_check(
-    MP,
-    FGA,
-    FTA,
-    TOV,
-    T_MP,
-    T_FGA,
-    T_FTA,
-    T_TOV
+    mp,
+    fga,
+    fta,
+    tov,
+    t_mp,
+    t_fga,
+    t_fta,
+    t_tov
   )
   list_check(adjustment)
 
   # Pull default values
   adjust <- list(
-    FTA = 0.4,
-    REB = 1.07
+    fta = 0.4,
+    reb = 1.07
   ) |>
     modifyList(adjustment) |>
     pull_coefficient()
 
   # If these are zero, we won't be able to compute
-  stopifnot((T_FGA + T_FTA * adjust("FTA") + T_TOV) != 0)
+  stopifnot((t_fga + t_fta * adjust("fta") + t_tov) != 0)
 
   (
     (
-      FGA +
-      FTA * adjust("FTA") +
-      TOV
+      fga +
+        fta * adjust("fta") +
+        tov
     ) *
-    (
-      T_MP /
-      (MP * 5)
-    ) /
-    (
-      T_FGA +
-      T_FTA * adjust("FTA") +
-      T_TOV
-    )
+      (
+        t_mp /
+          (mp * 5)
+      ) /
+      (
+        t_fga +
+          t_fta * adjust("fta") +
+          t_tov
+      )
   ) |>
     (\(.) (is.na(.) | is.nan(.)) |> ifelse(0, .))() # replace NA values with 0
 }
 
 # Pythagorean Wins, used to estimate final win percentage
-pythagorean_wins <- function(T_PTS = 0, O_PTS = 0, adjustment = list()) {
+pythagorean_wins <- function(t_pts = 0, o_pts = 0, adjustment = list()) {
   # Check for valid input
-  numeric_check(T_PTS, O_PTS)
+  numeric_check(t_pts, o_pts)
   list_check(adjustment)
 
   # Pull default values
-  adjust <- list(EXP = 14) |>
-    modifyList(adjustment)
+  adjust <- list(exp = 14) |>
+    modifyList(adjustment) |>
     pull_coefficient()
 
-  T_PTS ^ adjust("EXP") /
-  (
-    T_PTS ^ adjust("EXP") +
-    O_PTS ^ adjust("EXP")
-  )
+  t_pts ^ adjust("exp") /
+    (
+      t_pts ^ adjust("exp") +
+        o_pts ^ adjust("exp")
+    )
 }
 
 
@@ -274,44 +274,68 @@ pythagorean_wins <- function(T_PTS = 0, O_PTS = 0, adjustment = list()) {
 # most recent time is first and the oldest observation is last.
 
 # EWMA (exponentially weighted moving average), used for data manipulation
-point_ewma <- function(x, n, weight = 2 / (n + 1)) {
+point_ewma <- function(x, n = length(x), weight = 2 / (n + 1)) {
   x[!is.na(x)] |>
-    (\(v)
+    (\(v) {
       min(length(v), n) |>
-        (\(N)
-          if ((N - 1) > 0) {
-            weight * v[1] + (1 - weight) * point_ewma(v[-1], N - 1, weight)
+        (\(m) {
+          if ((m - 1) > 0) {
+            weight * v[1] + (1 - weight) * point_ewma(v[-1], m - 1, weight)
           } else {
-            weight * x[1]
+            weight * v[1]
           }
-        )()
-    )()
+        })()
+    })()
 }
 
-ewma <- function(x, n, weight = 2/(n+1)) {
-  sapply(length(x):1, \(i) point_ewma(x[i:(i+n-1)], n, weight)) |> rev()
-}
-
-# Lag a simple vector (x) by n spaces, filling with 0s
-lag_vector <- function(x, n = 1) {
-  rev(x) |>
-    (\(v) v[(n + 1):(length(v) + n)])() |>
-    rev() |>
-    (\(v) replace(v, is.na(v), 0))()
+ewma <- function(x, n, weight = 2 / (n + 1), by = c()) {
+  # Determine if we need to sort values
+  (\(v) {
+    if (length(v) == length(by)) {
+      v[order(by, decreasing = TRUE)]
+    } else {
+      x
+    }
+  })(x) |>
+    (\(v) {
+      sapply(
+        seq_along(v) |> rev(), # We look at the values in descending order
+        \(i) point_ewma(v[i:(i + n - 1)], n, weight)
+      ) |>
+        rev()
+    })() |>
+    (\(v) {
+      if (length(v) == length(by)) {
+        v[seq_along(v)[order(by, decreasing = TRUE)] |> order()]
+      } else {
+        v
+      }
+    })()
 }
 
 # Apply a function to the past n occurances of the provided vector
-roll <- function(x, n, func) {
-  seq_along(x) |>
-    sapply(\(i) {
-      rev(x) |> 
-        (\(v) v[max(1, i - n + 1):i])() |>
-        (\(v) {
-          (n - length(v)) |>
-            rep(0, times = _) |>
-            c(v)
-        })() |>
-        func()
-    }) |>
-    rev()
+roll <- function(x, n, func, by = c()) {
+  # Sort values in order of time
+  (\(v) {
+    if (length(v) == length(by)) {
+      v[order(by, decreasing = TRUE)]
+    } else {
+      x
+    }
+  })(x) |>
+    (\(v) {
+      sapply(
+        seq_along(v),
+        \(i) v[i:(i + n - 1)]
+      ) |>
+        apply(2, \(w) mean(w[!is.na(w)]))
+    })() |>
+    # Undo sorting of values by time
+    (\(v) {
+      if (length(v) == length(by)) {
+        v[seq_along(v)[order(by, decreasing = TRUE)] |> order()]
+      } else {
+        v
+      }
+    })()
 }
