@@ -32,7 +32,7 @@ data_modifications <- function(df) {
       games_lag_three = lag(Games, n = 3, default = 0, order_by = Season),
       games_lag_four = lag(Games, n = 4, default = 0, order_by = Season),
       games_lag_five = lag(Games, n = 5, default = 0, order_by = Season),
-      rolling_games_sum_2 = roll(Games, 2, sum),
+      rolling_games_sum_2 = roll(Games, 2, sum, by = Season),
       rolling_games_sum_2_lag_one = lag(
         rolling_games_sum_2,
         n = 1,
@@ -51,7 +51,7 @@ data_modifications <- function(df) {
         default = 0,
         order_by = Season
       ),
-      rolling_games_sum_3 = roll(Games, 3, sum),
+      rolling_games_sum_3 = roll(Games, 3, sum, by = Season),
       rolling_games_sum_3_lag_one = lag(
         rolling_games_sum_3,
         n = 1,
@@ -70,7 +70,7 @@ data_modifications <- function(df) {
         default = 0,
         order_by = Season
       ),
-      rolling_games_sum_4 = roll(Games, 4, sum),
+      rolling_games_sum_4 = roll(Games, 4, sum, by = Season),
       rolling_games_sum_4_lag_one = lag(
         rolling_games_sum_4,
         n = 1,
@@ -89,7 +89,7 @@ data_modifications <- function(df) {
         default = 0,
         order_by = Season
       ),
-      rolling_games_sum_5 = roll(Games, 5, sum),
+      rolling_games_sum_5 = roll(Games, 5, sum, by = Season),
       rolling_games_sum_5_lag_one = lag(
         rolling_games_sum_5,
         n = 1,
@@ -108,27 +108,27 @@ data_modifications <- function(df) {
         default = 0,
         order_by = Season
       ),
-      ewma_games_2 = ewma(Games, 2),
-      ewma_games_3 = ewma(Games, 3),
-      ewma_games_4 = ewma(Games, 4),
-      ewma_games_5 = ewma(Games, 5),
-      ewma_2 = ewma(Seconds_lag_one, 2),
+      ewma_games_2 = ewma(Games, 2, by = Season),
+      ewma_games_3 = ewma(Games, 3, by = Season),
+      ewma_games_4 = ewma(Games, 4, by = Season),
+      ewma_games_5 = ewma(Games, 5, by = Season),
+      ewma_2 = ewma(Seconds_lag_one, 2, by = Season),
       ewma_2_lag_one = lag(ewma_2, n = 1, default = 0, order_by = Season),
       ewma_2_lag_two = lag(ewma_2, n = 2, default = 0, order_by = Season),
       ewma_2_lag_three = lag(ewma_2, n = 3, default = 0, order_by = Season),
-      ewma_3 = ewma(Seconds_lag_one, 3),
+      ewma_3 = ewma(Seconds_lag_one, 3, by = Season),
       ewma_3_lag_one = lag(ewma_3, n = 1, default = 0, order_by = Season),
       ewma_3_lag_two = lag(ewma_3, n = 2, default = 0, order_by = Season),
       ewma_3_lag_three = lag(ewma_3, n = 3, default = 0, order_by = Season),
-      ewma_4 = ewma(Seconds_lag_one, 4),
+      ewma_4 = ewma(Seconds_lag_one, 4, by = Season),
       ewma_4_lag_one = lag(ewma_4, n = 1, default = 0, order_by = Season),
       ewma_4_lag_two = lag(ewma_4, n = 2, default = 0, order_by = Season),
       ewma_4_lag_three = lag(ewma_4, n = 3, default = 0, order_by = Season),
-      ewma_5 = ewma(Seconds_lag_one, 5),
+      ewma_5 = ewma(Seconds_lag_one, 5, by = Season),
       ewma_5_lag_one = lag(ewma_5, n = 1, default = 0, order_by = Season),
       ewma_5_lag_two = lag(ewma_5, n = 2, default = 0, order_by = Season),
       ewma_5_lag_three = lag(ewma_5, n = 3, default = 0, order_by = Season),
-      rolling_var_2 = roll(Seconds_lag_one, 2, var),
+      rolling_var_2 = roll(Seconds_lag_one, 2, var, by = Season),
       rolling_var_2_lag_one = lag(
         rolling_var_2, n = 1, default = 0, order_by = Season
       ),
@@ -138,7 +138,7 @@ data_modifications <- function(df) {
       rolling_var_2_lag_three = lag(
         rolling_var_2, n = 3, default = 0, order_by = Season
       ),
-      rolling_var_3 = roll(Seconds_lag_one, 3, var),
+      rolling_var_3 = roll(Seconds_lag_one, 3, var, by = Season),
       rolling_var_3_lag_one = lag(
         rolling_var_3, n = 1, default = 0, order_by = Season
       ),
@@ -148,7 +148,7 @@ data_modifications <- function(df) {
       rolling_var_3_lag_three = lag(
         rolling_var_3, n = 3, default = 0, order_by = Season
       ),
-      rolling_var_4 = roll(Seconds_lag_one, 4, var),
+      rolling_var_4 = roll(Seconds_lag_one, 4, var, by = Season),
       rolling_var_4_lag_one = lag(
         rolling_var_4, n = 1, default = 0, order_by = Season
       ),
@@ -158,7 +158,7 @@ data_modifications <- function(df) {
       rolling_var_4_lag_three = lag(
         rolling_var_4, n = 3, default = 0, order_by = Season
       ),
-      rolling_var_5 = roll(Seconds_lag_one, 5, var),
+      rolling_var_5 = roll(Seconds_lag_one, 5, var, by = Season),
       rolling_var_5_lag_one = lag(
         rolling_var_5, n = 1, default = 0, order_by = Season
       ),
@@ -168,7 +168,7 @@ data_modifications <- function(df) {
       rolling_var_5_lag_three = lag(
         rolling_var_5, n = 3, default = 0, order_by = Season
       ),
-      rolling_sd_2 = roll(Seconds_lag_one, 2, sd),
+      rolling_sd_2 = roll(Seconds_lag_one, 2, sd, by = Season),
       rolling_sd_2_lag_one = lag(
         rolling_sd_2, n = 1, default = 0, order_by = Season
       ),
@@ -178,7 +178,7 @@ data_modifications <- function(df) {
       rolling_sd_2_lag_three = lag(
         rolling_sd_2, n = 3, default = 0, order_by = Season
       ),
-      rolling_sd_3 = roll(Seconds_lag_one, 3, sd),
+      rolling_sd_3 = roll(Seconds_lag_one, 3, sd, by = Season),
       rolling_sd_3_lag_one = lag(
         rolling_sd_3, n = 1, default = 0, order_by = Season
       ),
@@ -188,7 +188,7 @@ data_modifications <- function(df) {
       rolling_sd_3_lag_three = lag(
         rolling_sd_3, n = 3, default = 0, order_by = Season
       ),
-      rolling_sd_4 = roll(Seconds_lag_one, 4, sd),
+      rolling_sd_4 = roll(Seconds_lag_one, 4, sd, by = Season),
       rolling_sd_4_lag_one = lag(
         rolling_sd_4, n = 1, default = 0, order_by = Season
       ),
@@ -198,7 +198,7 @@ data_modifications <- function(df) {
       rolling_sd_4_lag_three = lag(
         rolling_sd_4, n = 3, default = 0, order_by = Season
       ),
-      rolling_sd_5 = roll(Seconds_lag_one, 5, sd),
+      rolling_sd_5 = roll(Seconds_lag_one, 5, sd, by = Season),
       rolling_sd_5_lag_one = lag(
         rolling_sd_5, n = 1, default = 0, order_by = Season
       ),
