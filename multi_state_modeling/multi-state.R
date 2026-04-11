@@ -7,13 +7,14 @@
 # and the various `mu_??` are the force of transition in this
 # multi-state model:
 #   ▗▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▖
-#   ▐                   Healthy                   ▌
+#   ▐                   Healthy (0)               ▌
 #   ▝▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▘
-#         ▲                  |              |
+#         ▲                  ▲              |
 #         |                  |              |
 #         ▼                  ▼              ▼
 # ▗▄▄▄▄▄▄▄▄▄▄▄▄▄▄▖    ▗▄▄▄▄▄▄▄▄▄▄▄▄▄▖ ▗▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▖
-# ▐ Short injury ▌◀---▐ Long injury ▌ ▐ Season-ending injury ▌
+# ▐ Short injury ▌    ▐ Long injury ▌ ▐ Season-ending injury ▌
+# ▐     (1)      ▌    ▐     (2)     ▌ ▐         (3)          ▌
 # ▝▀▀▀▀▀▀▀▀▀▀▀▀▀▀▘    ▝▀▀▀▀▀▀▀▀▀▀▀▀▀▘ ▝▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▘
 #
 # A player can transition to and from the healthy state to any other,
@@ -29,7 +30,10 @@ library(msm)
 
 # Threshold to split short and long injuries at
 # ADJUST TO CHANGE RATIO OF SHORT/LONG-TERM INJURIES
-THRESHOLD=3
+SHORT_THRESHOLD=3
+
+# Threshold of missed games at end of season to dictate as season-ending injury
+LONG_THRESHOLD=20
 
 # Get data from SQL database
 conn <- dbConnect(RSQLite::SQLite(), "../bball_db")
@@ -41,7 +45,7 @@ dbDisconnect(conn)
 # Make the date column into a numeric value
 game_info <- game_info_raw |>
   within({
-    Date = Date |> as.Date("%b %d, %Y") |> as.numeric()
+    Date <- Date |> as.Date("%b %d, %Y") |> as.numeric()
     rm(Home_Team_Name, Away_Team_Name, Referee_ID1, Referee_ID2, Referee_ID3)
   })
 player_games <- player_games_raw |>
@@ -58,7 +62,7 @@ get_player_states <- function(player_id, season, p_data_raw, g_data_raw) {
   teams <- unique(p_data[["Team_ID"]])
 
   if (nrow(p_data) == 0) {
-    return NULL # Early exit
+    return(NULL) # Early exit
   }
 
   rows <- g_data_raw |>
@@ -67,11 +71,41 @@ get_player_states <- function(player_id, season, p_data_raw, g_data_raw) {
         (Home_Team_ID %in% teams | Away_Team_ID %in% teams)
     )
   g_data <- g_data_raw[rows, ]
-  data <- merge(g_data, p_data, by = c("Game_ID", "Season"), all.x = TRUE) |>
-    within({
-      last_team <- numeric()
-      drop <- numeric()
-      for (i in seq_along(Seconds)) {
+  merge(g_data, p_data, by = c("Game_ID", "Season"), all.x = TRUE) |>
+    (\(df) df[order(df$Date), ])() |> # Guarantee the proper order
+    (\(df) { # Filter out unneeded rows
+       last_team <- df$Team_ID[!is.na(df$Team_ID)][1]
+       keep <- logical()
+       for (i in seq_along(df$Seconds)) {
+         if (!last_team %in% c(df[i, "Home_Team_ID"], df[i, "Away_Team_ID"])) {
+           if (!is.na(df[i, "Seconds"])) {
+             last_team <- df[i, "Team_ID"]
+           } else {
+             keep[i] <- FALSE
+             next
+           }
+         }
+         keep[i] <- TRUE
+       }
+       df[keep, ]
+    })() |>
+    within({ # Dictate states
+      State <- length(Seconds) |> numeric()
+      Seconds[is.na(Seconds)] <- 0
+      for (i in seq_along(Seconds) |> rev()) {
+        if (Seconds[i] > 0) {
+          State[i] <- 0
+        } else if (i != length(Seconds) & State[i + 1] != 0) {
+          State[i] <- State[i + 1] # Copy previous if needed
+        } else if (sum(Seconds[max(0, i - SHORT_THRESHOLD):i] > 0) > 0) {
+          State[i] <- 1 # Short-term if under threshold
+        } else if (i == length(Seconds) &
+                   (sum(Seconds[max(0, i - LONG_THRESHOLD):i] > 0) > 0)) {
+          State[i] <- 3 # Season-ending if at the end and over threshold
+        } else {
+          State[i] <- 2 # Otherwise, long-term
+        }
       }
+      rm(i)
     })
 }
