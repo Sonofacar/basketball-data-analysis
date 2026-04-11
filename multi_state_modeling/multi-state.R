@@ -7,14 +7,14 @@
 # and the various `mu_??` are the force of transition in this
 # multi-state model:
 #   ▗▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▖
-#   ▐                   Healthy (0)               ▌
+#   ▐                   Healthy (1)               ▌
 #   ▝▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▘
 #         ▲                  ▲              |
 #         |                  |              |
 #         ▼                  ▼              ▼
 # ▗▄▄▄▄▄▄▄▄▄▄▄▄▄▄▖    ▗▄▄▄▄▄▄▄▄▄▄▄▄▄▖ ▗▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▖
 # ▐ Short injury ▌    ▐ Long injury ▌ ▐ Season-ending injury ▌
-# ▐     (1)      ▌    ▐     (2)     ▌ ▐         (3)          ▌
+# ▐     (2)      ▌    ▐     (3)     ▌ ▐         (4)          ▌
 # ▝▀▀▀▀▀▀▀▀▀▀▀▀▀▀▘    ▝▀▀▀▀▀▀▀▀▀▀▀▀▀▘ ▝▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▘
 #
 # A player can transition to and from the healthy state to any other,
@@ -46,19 +46,18 @@ dbDisconnect(conn)
 game_info <- game_info_raw |>
   within({
     Date <- Date |> as.Date("%b %d, %Y") |> as.numeric()
-    rm(Home_Team_Name, Away_Team_Name, Referee_ID1, Referee_ID2, Referee_ID3)
   })
-player_games <- player_games_raw |>
-  within({
-    rm(Threes, Three_Attempts, Field_Goals, Field_Goal_Attempts, Freethrows,
-       Freethrow_Attempts, Offensive_Rebounds, Defensive_Rebounds, Assists,
-       Steals, Blocks, Turnovers, Fouls, Points, PM, Win, Home)
-  })
+player_games <- player_games_raw
 
 # Utility functions
 get_player_states <- function(player_id, season, p_data_raw, g_data_raw) {
   rows <- with(p_data_raw, (Player_ID == player_id) & (Season == season))
-  p_data <- p_data_raw[rows, ]
+  p_data <- p_data_raw[rows, ] |>
+    within({
+      rm(Threes, Three_Attempts, Field_Goals, Field_Goal_Attempts, Freethrows,
+         Freethrow_Attempts, Offensive_Rebounds, Defensive_Rebounds, Assists,
+         Steals, Blocks, Turnovers, Fouls, Points, PM, Win, Home, Opponent_ID)
+    })
   teams <- unique(p_data[["Team_ID"]])
 
   if (nrow(p_data) == 0) {
@@ -70,7 +69,12 @@ get_player_states <- function(player_id, season, p_data_raw, g_data_raw) {
       (Season == season) &
         (Home_Team_ID %in% teams | Away_Team_ID %in% teams)
     )
-  g_data <- g_data_raw[rows, ]
+  g_data <- g_data_raw[rows, ] |>
+    within({
+      rm(Home_Team_Name, Away_Team_Name, Location, Duration, Attendance,
+         Playoffs, In_Season_Tournament, Play_In, Referee_ID1, Referee_ID2,
+         Referee_ID3)
+    })
   merge(g_data, p_data, by = c("Game_ID", "Season"), all.x = TRUE) |>
     (\(df) df[order(df$Date), ])() |> # Guarantee the proper order
     (\(df) { # Filter out unneeded rows
@@ -94,18 +98,20 @@ get_player_states <- function(player_id, season, p_data_raw, g_data_raw) {
       Seconds[is.na(Seconds)] <- 0
       for (i in seq_along(Seconds) |> rev()) {
         if (Seconds[i] > 0) {
-          State[i] <- 0
+          State[i] <- 1
         } else if (i != length(Seconds) & State[i + 1] != 0) {
           State[i] <- State[i + 1] # Copy previous if needed
         } else if (sum(Seconds[max(0, i - SHORT_THRESHOLD):i] > 0) > 0) {
-          State[i] <- 1 # Short-term if under threshold
+          State[i] <- 2 # Short-term if under threshold
         } else if (i == length(Seconds) &
                    (sum(Seconds[max(0, i - LONG_THRESHOLD):i] > 0) > 0)) {
-          State[i] <- 3 # Season-ending if at the end and over threshold
+          State[i] <- 4 # Season-ending if at the end and over threshold
         } else {
-          State[i] <- 2 # Otherwise, long-term
+          State[i] <- 3 # Otherwise, long-term
         }
       }
-      rm(i)
+      Date <- Date - min(Date) + 1
+      rm(Game_ID, Season, Home_Team_ID, Away_Team_ID, Seconds,
+         Player_ID, Team_ID, i)
     })
 }
