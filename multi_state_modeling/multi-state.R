@@ -100,12 +100,14 @@ get_player_states <- function(player_id, season, p_data_raw, g_data_raw) {
     (\(df) df[order(df$Date), ])() |>       # Set back to order
     within({ # Dictate states
       State <- length(Seconds) |> numeric()
+      # State <- 0
       Seconds[is.na(Seconds)] <- 0
       for (i in seq_along(Seconds) |> rev()) {
         if (Seconds[i] > 0) {
           State[i] <- 1
         } else if (i != length(Seconds) & State[i + 1] != 1) {
           State[i] <- State[i + 1] # Copy previous if needed
+          State[i + 1] <- ifelse(State[i + 1] == 4, NA, State[i + 1])
         } else if (sum(Seconds[max(0, i - SHORT_THRESHOLD):i] > 0) > 0) {
           State[i] <- 2 # Short-term if under threshold
         } else if (i == length(Seconds) &
@@ -118,7 +120,9 @@ get_player_states <- function(player_id, season, p_data_raw, g_data_raw) {
       Date <- Date - min(Date) + 1
       rm(Game_ID, Season, Home_Team_ID, Away_Team_ID, Seconds,
          Player_ID, Team_ID, i)
-    })
+    }) |>
+    (\(df) df[!is.na(df$State), ])() |>
+    (\(df) df[df$State != 0, ])()
 }
 
 data <- data.frame(
@@ -131,31 +135,26 @@ data <- data.frame(
 for (id in unique(player_info[["Player_ID"]])) {
   tmp_games_df <- player_games[player_games$Player_ID == id, ]
   for (year in unique(tmp_games_df[["Season"]])) {
-    data <- get_player_states(id, year, player_games, game_info) |>
+    data <- get_player_states(id, year, tmp_games_df, game_info) |>
       within({
-        Season <- year
-        Player_ID <- id
         ID <- paste(id, year, sep = "_")
+        Player_ID <- id
+        Season <- year
       }) |>
+      (\(df) { # drop all rows if only one row
+         if (nrow(df) > 1) df else df[-1, ]
+      })() |>
       rbind(data, make.row.names = FALSE)
   }
 }
 
 Q <- matrix(c(
-    0,       0.05,   0.025,   0.005,
-    0.4,        0,       0,       0,
-    0.1,        0,       0,       0,
-    0,          0,       0,       0
+    0, 1, 1, 1,
+    1, 0, 0, 0,
+    1, 0, 0, 0,
+    0, 0, 0, 0
   ), byrow = TRUE, nrow = 4)
-E <- matrix(c(
-    0.80,    0.02,    0.02,    0.02,
-    0.01,    0.85,    0.01,    0.01,
-    0.01,    0.01,    0.85,    0.01,
-    0.01,    0.01,    0.01,    0.85
-  ), byrow = TRUE, nrow = 4)
-colnames(Q) <- rownames(Q) <- colnames(E) <- rownames(E) <- c("Healthy",
-                                                              "Short", "Long",
-                                                              "Season-end")
+colnames(Q) <- rownames(Q) <- c("Healthy", "Short", "Long", "Season-end")
 
 # This doesn't work yet: "numerical overflow in calculating likelihood."
 m <- msm(
@@ -163,6 +162,6 @@ m <- msm(
   data = data[data$Season > 2020, ],
   subject = ID,
   qmatrix = Q,
-  ematrix = E,
-  deathexact = 4
+  gen.inits = TRUE,
+  control = list(trace = 1, REPORT = 1)
 )
