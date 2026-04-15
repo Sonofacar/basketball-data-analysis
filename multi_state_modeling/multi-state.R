@@ -108,10 +108,10 @@ get_player_states <- function(player_id, season, p_data_raw, g_data_raw) {
         } else if (i != length(Seconds) & State[i + 1] != 1) {
           State[i] <- State[i + 1] # Copy previous if needed
           State[i + 1] <- ifelse(State[i + 1] == 4, NA, State[i + 1])
-        } else if (sum(Seconds[max(0, i - SHORT_THRESHOLD):i] > 0) > 0) {
+        } else if (any(Seconds[max(0, i - SHORT_THRESHOLD):i] > 0)) {
           State[i] <- 2 # Short-term if under threshold
         } else if (i == length(Seconds) &
-                   (sum(Seconds[max(0, i - LONG_THRESHOLD):i] > 0) > 0)) {
+                   any(Seconds[max(0, i - LONG_THRESHOLD):i] > 0)) {
           State[i] <- 4 # Season-ending if at the end and over threshold
         } else {
           State[i] <- 3 # Otherwise, long-term
@@ -156,12 +156,11 @@ Q <- matrix(c(
   ), byrow = TRUE, nrow = 4)
 colnames(Q) <- rownames(Q) <- c("Healthy", "Short", "Long", "Season-end")
 
-# This doesn't work yet: "numerical overflow in calculating likelihood."
 m <- msm(
   State ~ Date,
-  data = data[data$Season > 2020, ],
+  data = data,
   subject = ID,
   qmatrix = Q,
   gen.inits = TRUE,
-  control = list(trace = 1, REPORT = 1)
+  control = list(fnscale = 50) # Raise value if running into overflow errors
 )
