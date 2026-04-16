@@ -77,8 +77,7 @@ get_player_states <- function(player_id, season, p_data_raw, g_data_raw) {
   g_data <- g_data_raw[rows, ] |>
     within({
       rm(Home_Team_Name, Away_Team_Name, Location, Duration, Attendance,
-         Playoffs, In_Season_Tournament, Play_In, Referee_ID1, Referee_ID2,
-         Referee_ID3)
+         Referee_ID1, Referee_ID2, Referee_ID3)
     })
   merge(g_data, p_data, by = c("Game_ID", "Season"), all.x = TRUE) |>
     (\(df) df[order(df$Date), ])() |> # Guarantee the proper order
@@ -103,14 +102,14 @@ get_player_states <- function(player_id, season, p_data_raw, g_data_raw) {
     (\(df) df[!duplicated(df$Date), ])() |> # Drop all duplicated rows
     (\(df) df[order(df$Date), ])() |>       # Set back to order
     within({ # Dictate states
-      State <- length(Seconds) |> numeric()
-      # State <- 0
+      State <- 0
       Seconds[is.na(Seconds)] <- 0
       for (i in seq_along(Seconds) |> rev()) {
         if (Seconds[i] > 0) {
           State[i] <- 1
+          next
         } else if (i != length(Seconds) & State[i + 1] != 1) {
-          State[i] <- State[i + 1] # Copy previous if needed
+          State[i] <- State[i + 1] # Copy next state if needed
           State[i + 1] <- ifelse(State[i + 1] == 4, NA, State[i + 1])
         } else if (any(Seconds[max(0, i - SHORT_THRESHOLD):i] > 0)) {
           State[i] <- 2 # Short-term if under threshold
@@ -120,12 +119,25 @@ get_player_states <- function(player_id, season, p_data_raw, g_data_raw) {
         } else {
           State[i] <- 3 # Otherwise, long-term
         }
+        Team_ID[i] <- Team_ID[i + 1] # Team ID is always their next team
       }
-      rm(Game_ID, Season, Home_Team_ID, Away_Team_ID, Seconds,
-         Player_ID, Team_ID, i)
+      rm(i)
     }) |>
     (\(df) df[!is.na(df$State), ])() |>
-    (\(df) df[df$State != 0, ])()
+    (\(df) df[df$State != 0, ])() |>
+    within({ # Clean up team identification
+      Team_ID[State == 4] <- Team_ID[State == 1] |>
+        unique() |>
+        rev() |>
+        (\(.) .[1])()
+      Player_ID <- player_id
+      Home <- (Team_ID == Home_Team_ID) & (!is.na(Team_ID))
+      Away <- (Team_ID == Away_Team_ID) & (!is.na(Team_ID))
+      Opponent_ID <- NA
+      Opponent_ID[Away] <- Home_Team_ID[Away]
+      Opponent_ID[Home] <- Away_Team_ID[Home]
+      rm(Home_Team_ID, Away_Team_ID, Home, Away)
+    })
 }
 
 
@@ -133,13 +145,7 @@ get_player_states <- function(player_id, season, p_data_raw, g_data_raw) {
 # Cleaning Data #
 #################
 
-data <- data.frame(
-    Date = numeric(),
-    State = numeric(),
-    ID = character(),
-    PlayerID = numeric(),
-    Season = numeric()
-  )
+data <- data.frame()
 for (id in unique(player_info[["Player_ID"]])) {
   tmp_games_df <- player_games[player_games$Player_ID == id, ]
   for (year in unique(tmp_games_df[["Season"]])) {
