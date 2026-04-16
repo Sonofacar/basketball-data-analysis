@@ -50,7 +50,11 @@ game_info <- game_info_raw |>
 player_games <- player_games_raw
 player_info <- player_info_raw
 
-# Utility functions
+
+#####################
+# Utility functions #
+#####################
+
 get_player_states <- function(player_id, season, p_data_raw, g_data_raw) {
   rows <- with(p_data_raw, (Player_ID == player_id) & (Season == season))
   p_data <- p_data_raw[rows, ] |>
@@ -117,13 +121,17 @@ get_player_states <- function(player_id, season, p_data_raw, g_data_raw) {
           State[i] <- 3 # Otherwise, long-term
         }
       }
-      Date <- Date - min(Date) + 1
       rm(Game_ID, Season, Home_Team_ID, Away_Team_ID, Seconds,
          Player_ID, Team_ID, i)
     }) |>
     (\(df) df[!is.na(df$State), ])() |>
     (\(df) df[df$State != 0, ])()
 }
+
+
+#################
+# Cleaning Data #
+#################
 
 data <- data.frame(
     Date = numeric(),
@@ -147,6 +155,11 @@ for (id in unique(player_info[["Player_ID"]])) {
       rbind(data, make.row.names = FALSE)
   }
 }
+
+
+##################
+# Creating model #
+##################
 
 Q <- matrix(c(
     0, 1, 1, 1,
