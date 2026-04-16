@@ -28,6 +28,9 @@
 library(RSQLite)
 library(msm)
 
+# Add custom functions
+source("functions.R")
+
 # Threshold to split short and long injuries at
 # ADJUST TO CHANGE RATIO OF SHORT/LONG-TERM INJURIES
 SHORT_THRESHOLD=3
@@ -37,6 +40,7 @@ LONG_THRESHOLD=20
 
 # Get data from SQL database
 conn <- dbConnect(RSQLite::SQLite(), "../bball_db")
+team_games_raw <- dbReadTable(conn, "team_games")
 player_games_raw <- dbReadTable(conn, "player_games")
 player_info_raw <- dbReadTable(conn, "player_info")
 game_info_raw <- dbReadTable(conn, "game_info")
@@ -48,8 +52,17 @@ game_info <- game_info_raw |>
     Date <- Date |> as.Date("%b %d, %Y") |> as.numeric()
   })
 player_games <- player_games_raw
-player_info <- player_info_raw
-
+player_info <- player_info_raw |>
+  within({
+    Birthday <- Birthday |> as.Date("%b %d, %Y") |> as.numeric()
+    Debut_Date <- Debut_Date |> as.Date("%b %d, %Y") |> as.numeric()
+  })
+team_games <- team_games_raw
+opponent_games <- team_games_raw |>
+  within({
+    Opponent_ID <- Team_ID
+    rm(Team_ID)
+  })
 
 #####################
 # Utility functions #
@@ -145,11 +158,11 @@ get_player_states <- function(player_id, season, p_data_raw, g_data_raw) {
 # Cleaning Data #
 #################
 
-data <- data.frame()
+data_raw <- data.frame()
 for (id in unique(player_info[["Player_ID"]])) {
   tmp_games_df <- player_games[player_games$Player_ID == id, ]
   for (year in unique(tmp_games_df[["Season"]])) {
-    data <- get_player_states(id, year, tmp_games_df, game_info) |>
+    data_raw <- get_player_states(id, year, tmp_games_df, game_info) |>
       within({
         ID <- paste(id, year, sep = "_")
         Player_ID <- id
@@ -158,9 +171,29 @@ for (id in unique(player_info[["Player_ID"]])) {
       (\(df) { # drop all rows if only one row
          if (nrow(df) > 1) df else df[-1, ]
       })() |>
-      rbind(data, make.row.names = FALSE)
+      rbind(data_raw, make.row.names = FALSE)
   }
 }
+
+data <- data_raw |>
+  (\(df) df[c(1, 8, 9, 11, 10, 12, 3, 2, 4, 5, 6, 7)])() |>
+  merge(player_info[c(2, 3, 6, 8:10)], by = "Player_ID", all.x = TRUE) |>
+  merge(player_games[2:20], by = c("Player_ID", "Game_ID"), all.x = TRUE) |>
+  merge(
+    team_games[c(1:16, 18, 20)],
+    by = c("Team_ID", "Game_ID"),
+    all.x = TRUE,
+    suffixes = c("", "_team")
+  ) |>
+  merge(
+    opponent_games[c(1:15, 18, 20)],
+    by = c("Opponent_ID", "Game_ID"),
+    all.x = TRUE,
+    suffixes = c("", "_opponent")
+  ) |>
+  within({ # Remove IDs after merging
+    rm(Game_ID, Player_ID, Team_ID, Opponent_ID)
+  })
 
 
 ##################
