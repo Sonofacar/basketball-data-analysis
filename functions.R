@@ -257,6 +257,16 @@ pythagorean_wins <- function(t_pts = 0, o_pts = 0, adjustment = list()) {
     )
 }
 
+effective_fg_percent <- function(
+  fgm,
+  fga,
+  threepm
+) {
+  numeric_check(fgm, threepm, fga)
+
+  ((fgm + threepm / 2) / fga)
+}
+
 
 #######################
 # Feature Engineering #
