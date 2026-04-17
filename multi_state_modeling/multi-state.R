@@ -51,13 +51,15 @@ game_info <- game_info_raw |>
   within({
     Date <- Date |> as.Date("%b %d, %Y") |> as.numeric()
   })
-player_games <- player_games_raw
+player_games <- player_games_raw |>
+  (\(df) df[!duplicated(df), ])()
 player_info <- player_info_raw |>
   within({
     Birthday <- Birthday |> as.Date("%b %d, %Y") |> as.numeric()
     Debut_Date <- Debut_Date |> as.Date("%b %d, %Y") |> as.numeric()
   })
-team_games <- team_games_raw
+team_games <- team_games_raw |>
+  (\(df) df[!duplicated(df), ])()
 opponent_games <- team_games_raw |>
   within({
     Opponent_ID <- Team_ID
