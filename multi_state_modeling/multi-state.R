@@ -182,7 +182,7 @@ data <- data_raw |>
   merge(player_info[c(2, 3, 6, 8:10)], by = "Player_ID", all.x = TRUE) |>
   merge(player_games[2:20], by = c("Player_ID", "Game_ID"), all.x = TRUE) |>
   merge(
-    team_games[c(1:16, 18, 20)],
+    team_games[c(1:15, 18, 20)],
     by = c("Team_ID", "Game_ID"),
     all.x = TRUE,
     suffixes = c("", "_team")
@@ -197,6 +197,60 @@ data <- data_raw |>
   (\(df) df[order(df$ID), ])() |>
   within({ # Remove IDs after merging
     rm(Game_ID, Player_ID, Team_ID, Opponent_ID)
+  }) |>
+  within({
+    Age <- Date - Birthday
+    Experience <- Date - Debut_Date
+    Career_Seasons <- as.factor(Season - Draft_Year)
+    Draft_Rank <- max(Draft_Position) - Draft_Position
+    Draft_Rank[Draft_Position == 0] <- 0
+    Usage <- usage(
+      Seconds / 60,
+      Field_Goal_Attempts,
+      Freethrow_Attempts,
+      Turnovers,
+      Seconds_team / 60,
+      Field_Goal_Attempts_team,
+      Freethrow_Attempts_team,
+      Turnovers_team
+    )
+    Possessions_team <- possessions_team(
+      Field_Goal_Attempts_team,
+      Field_Goals_team,
+      Freethrow_Attempts_team,
+      Offensive_Rebounds_team,
+      Turnovers_team,
+      Defensive_Rebounds_opponent
+    )
+    Possessions_opponent <- possessions_team(
+      Field_Goal_Attempts_opponent,
+      Field_Goals_opponent,
+      Freethrow_Attempts_opponent,
+      Offensive_Rebounds_opponent,
+      Turnovers_opponent,
+      Defensive_Rebounds_team
+    )
+    Pace_team <- pace(Seconds_team / 60, Possessions_team)
+    Pace_opponent <- pace(Seconds_opponent / 60, Possessions_opponent)
+    Fantasy_Points <- fantasy_points(
+      Points,
+      Threes,
+      Field_Goal_Attempts,
+      Field_Goals,
+      Freethrow_Attempts,
+      Freethrows,
+      Offensive_Rebounds + Defensive_Rebounds,
+      Assists,
+      Steals,
+      Blocks,
+      Turnovers
+    )
+    Effective_Field_Goal <- effective_fg_percent(
+      Field_Goals,
+      Field_Goal_Attempts,
+      Threes
+    )
+    rm(Season, Birthday, Debut_Date, Draft_Year, Draft_Position)
   })
 
 
