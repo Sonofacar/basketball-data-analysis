@@ -191,6 +191,8 @@ data <- data_raw |>
     all.x = TRUE,
     suffixes = c("", "_opponent")
   ) |>
+  (\(df) df[order(df$Date), ])() |> # Order by ID -> Date
+  (\(df) df[order(df$ID), ])() |>
   within({ # Remove IDs after merging
     rm(Game_ID, Player_ID, Team_ID, Opponent_ID)
   })
