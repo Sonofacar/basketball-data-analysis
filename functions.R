@@ -136,9 +136,6 @@ possessions_team <- function(
   )
   list_check(adjustment)
 
-  # If these are zero, we won't be able to compute
-  stopifnot((oreb + o_dreb) != 0)
-
   # Pull default values
   adjust <- list(
     fta = 0.4,
@@ -148,9 +145,9 @@ possessions_team <- function(
     pull_coefficient()
 
   fga +
-    fta * adjust("fta")
-  (oreb / (oreb + o_dreb)) *
-    adjust("reb") *
+    fta * adjust("fta") +
+    (oreb / (oreb + o_dreb)) *
+      adjust("reb") *
     (fga - fg) +
     tov
 }
@@ -222,9 +219,6 @@ usage <- function(
   ) |>
     modifyList(adjustment) |>
     pull_coefficient()
-
-  # If these are zero, we won't be able to compute
-  stopifnot((t_fga + t_fta * adjust("fta") + t_tov) != 0)
 
   (
     (
